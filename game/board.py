@@ -13,4 +13,3 @@ class Board:
     
     def get_cell_size(self):
         return self.cell_size
-    
