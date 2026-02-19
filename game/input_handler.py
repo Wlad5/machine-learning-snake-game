@@ -1,5 +1,5 @@
 import pygame as pg
-from enums import Direction, Action, GameStatus, CellType, EventType
+from enums import Direction
 
 class InputHandler:
     # Maps keys (or later agent actions) to movement commands.

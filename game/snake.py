@@ -1,6 +1,6 @@
 import pygame as pg
-from constants import FOOD_COLOR, CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT
-from enums import Direction, Action, GameStatus, CellType, EventType
+from constants import CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, SNAKE_HEAD_COLOR
+from enums import Direction
 
 class Snake:
     # Manages body segments, movement, growth, and self‑collision checks.
@@ -9,10 +9,15 @@ class Snake:
         self.snake_head = self.snake[0]
         self.skin = pg.Surface((CELL_SIZE, CELL_SIZE))
         self.skin.fill((255, 255, 255))
+        self.head_skin = pg.Surface((CELL_SIZE, CELL_SIZE))
+        self.head_skin.fill((SNAKE_HEAD_COLOR))
     
     def draw_snake(self, screen):
         for segment in self.snake:
-            screen.blit(self.skin, segment)
+            if segment == self.snake_head:
+                screen.blit(self.head_skin, segment)
+            else:
+                screen.blit(self.skin, segment)
 
     def move(self, direction):
         match direction:
