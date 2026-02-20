@@ -79,10 +79,6 @@ class Game:
         )
         pg.display.flip()
 
-class GameState:
-    # Snapshot of current state for ML (snake, food, score, etc.).
-    pass
-
 if __name__ == "__main__":
     game = Game()
     game.run()
