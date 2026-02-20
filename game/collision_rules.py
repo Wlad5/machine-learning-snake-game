@@ -22,12 +22,10 @@ class CollisionRules:
         return None
 
     def check_self_collision(snake):
-        # Only check for self-collision if snake is longer than 2 tiles
-        if len(snake.snake) > 2:
-            for segment in snake.snake[1:]:
-                if snake.snake_head == segment:
-                    print("Hit self")
-                    return EventType.HIT_SELF
+        # With deque + set, duplicate occupancy means head overlapped body.
+        if len(snake.snake_positions) != len(snake.snake):
+            print("Hit self")
+            return EventType.HIT_SELF
         return None
     
     def check_win(snake, board):

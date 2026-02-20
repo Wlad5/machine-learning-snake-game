@@ -15,7 +15,7 @@ class Food:
             position_x = rd.randint(0, (self.board.get_width() // CELL_SIZE) - 1) * CELL_SIZE
             position_y = rd.randint(0, (self.board.get_height() // CELL_SIZE) - 1) * CELL_SIZE
             position = (position_x, position_y)
-            if position not in self.snake.snake:
+            if position not in self.snake.snake_positions:
                 self.position = position
                 return self.position
 
