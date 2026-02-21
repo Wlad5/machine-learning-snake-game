@@ -13,6 +13,7 @@ class Snake:
         self.snake = deque([start])          # ordered body (head at index 0)
         self.snake_positions = {start}       # O(1) occupancy checks
         self.snake_head = start
+        self.direction = Direction.RIGHT
 
         self.skin = pg.Surface((CELL_SIZE, CELL_SIZE))
         self.skin.fill((255, 255, 255))
@@ -28,8 +29,8 @@ class Snake:
             else:
                 screen.blit(self.skin, segment)
 
-    def move(self, direction):
-        match direction:
+    def move(self):
+        match self.direction:
             case Direction.UP:
                 new_head = (self.snake_head[0], self.snake_head[1] - CELL_SIZE)
             case Direction.DOWN:
@@ -53,3 +54,17 @@ class Snake:
 
     def grow(self):
         self.pending_growth += 1
+    
+    def get_direction(self):
+        return self.direction
+    
+    def set_direction(self, new_direction):
+        # Prevent reversing direction directly.
+        opposite_directions = {
+            Direction.UP: Direction.DOWN,
+            Direction.DOWN: Direction.UP,
+            Direction.LEFT: Direction.RIGHT,
+            Direction.RIGHT: Direction.LEFT,
+        }
+        if new_direction != opposite_directions.get(self.direction, None):
+            self.direction = new_direction

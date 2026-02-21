@@ -5,7 +5,7 @@ from food import Food
 from collision_rules import CollisionRules
 from input_handler import InputHandler
 from renderer import Renderer
-from enums import Direction, GameStatus
+from enums import GameStatus
 from constants import CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, UI_PANEL_HEIGHT
 
 class Game:
@@ -25,7 +25,6 @@ class Game:
         self.food = Food(self.board, self.snake)
 
         self.status = GameStatus.RUNNING
-        self.direction = Direction.RIGHT
         self.food_eaten = 0
 
         self.clock = pg.time.Clock()
@@ -41,14 +40,17 @@ class Game:
             self._render()
         pg.quit()
 
+    def get_status(self):
+        return self.status
+
     def _process_events(self):
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return False
-
+            snake_direction = self.snake.get_direction()
             new_direction = self.input_handler.handle_event(event)
             if new_direction:
-                self.direction = new_direction
+                self.snake.set_direction(new_direction)
         return True
 
     def _update(self, dt_ms):
@@ -57,7 +59,7 @@ class Game:
 
         self.move_timer_ms += dt_ms
         while self.move_timer_ms >= self.move_delay_ms:
-            self.snake.move(self.direction)
+            self.snake.move()
             self.move_timer_ms -= self.move_delay_ms
             self._resolve_collisions()
 
@@ -75,7 +77,7 @@ class Game:
         self.food.draw_food(self.screen)
         self.snake.draw_snake(self.screen)
         self.renderer.draw_game_status_panel(
-            self.status, self.food_eaten, self.direction
+            self.status, self.food_eaten, self.snake.get_direction()
         )
         pg.display.flip()
 
