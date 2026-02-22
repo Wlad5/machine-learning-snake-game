@@ -1,5 +1,4 @@
 from enums import GameStatus, EventType
-from constants import CELL_SIZE
 
 class CollisionRules:
     def check_food_collision(food, snake):
@@ -11,25 +10,19 @@ class CollisionRules:
         return None
     
     def check_wall_collision(snake, board):
-        TOP_WALL = snake.snake_head[1] < 0
-        BOTTOM_WALL = snake.snake_head[1] >= board.get_height()
-        LEFT_WALL = snake.snake_head[0] < 0
-        RIGHT_WALL = snake.snake_head[0] >= board.get_width()
-
-        if TOP_WALL or BOTTOM_WALL or LEFT_WALL or RIGHT_WALL:
+        if not board.in_bounds_cell(snake.snake_head):
             print("Hit wall")
             return EventType.HIT_WALL
         return None
 
     def check_self_collision(snake):
-        # With deque + set, duplicate occupancy means head overlapped body.
         if len(snake.snake_positions) != len(snake.snake):
             print("Hit self")
             return EventType.HIT_SELF
         return None
     
     def check_win(snake, board):
-        total_cells = (board.get_width() // CELL_SIZE) * (board.get_height() // CELL_SIZE)
+        total_cells = board.cols * board.rows
         if len(snake.snake) >= total_cells:
             print("Won")
             return GameStatus.WIN

@@ -12,15 +12,16 @@ class Food:
 
     def spawn_food(self):
         while True:
-            position_x = rd.randint(0, (self.board.get_width() // CELL_SIZE) - 1) * CELL_SIZE
-            position_y = rd.randint(0, (self.board.get_height() // CELL_SIZE) - 1) * CELL_SIZE
+            position_x = rd.randint(0, self.board.cols - 1)
+            position_y = rd.randint(0, self.board.rows - 1)
             position = (position_x, position_y)
             if position not in self.snake.snake_positions:
                 self.position = position
                 return self.position
 
     def draw_food(self, screen):
-        food_rectangle = pg.Rect(self.position[0], self.position[1], CELL_SIZE, CELL_SIZE)
+        pixel_x, pixel_y = self.board.to_pixel(self.position)
+        food_rectangle = pg.Rect(pixel_x, pixel_y, CELL_SIZE, CELL_SIZE)
         pg.draw.rect(screen, self.color, food_rectangle)
     
     def delete_food(self):

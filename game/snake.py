@@ -7,11 +7,11 @@ class Snake:
     # Manages body segments, movement, growth, and self-collision checks.
     def __init__(self):
         start = (
-            (SCREEN_WIDTH // CELL_SIZE // 2) * CELL_SIZE,
-            (SCREEN_HEIGHT // CELL_SIZE // 2) * CELL_SIZE,
+            SCREEN_WIDTH // CELL_SIZE // 2,
+            SCREEN_HEIGHT // CELL_SIZE // 2,
         )
-        self.snake = deque([start])          # ordered body (head at index 0)
-        self.snake_positions = {start}       # O(1) occupancy checks
+        self.snake = deque([start])
+        self.snake_positions = {start}
         self.snake_head = start
         self.direction = Direction.RIGHT
 
@@ -24,21 +24,22 @@ class Snake:
 
     def draw_snake(self, screen):
         for segment in self.snake:
+            pixel_position = (segment[0] * CELL_SIZE, segment[1] * CELL_SIZE)
             if segment == self.snake_head:
-                screen.blit(self.head_skin, segment)
+                screen.blit(self.head_skin, pixel_position)
             else:
-                screen.blit(self.skin, segment)
+                screen.blit(self.skin, pixel_position)
 
     def move(self):
         match self.direction:
             case Direction.UP:
-                new_head = (self.snake_head[0], self.snake_head[1] - CELL_SIZE)
+                new_head = (self.snake_head[0], self.snake_head[1] - 1)
             case Direction.DOWN:
-                new_head = (self.snake_head[0], self.snake_head[1] + CELL_SIZE)
+                new_head = (self.snake_head[0], self.snake_head[1] + 1)
             case Direction.LEFT:
-                new_head = (self.snake_head[0] - CELL_SIZE, self.snake_head[1])
+                new_head = (self.snake_head[0] - 1, self.snake_head[1])
             case Direction.RIGHT:
-                new_head = (self.snake_head[0] + CELL_SIZE, self.snake_head[1])
+                new_head = (self.snake_head[0] + 1, self.snake_head[1])
             case _:
                 return
 

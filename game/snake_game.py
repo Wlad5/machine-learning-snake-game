@@ -9,8 +9,6 @@ from enums import GameStatus
 from constants import CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, UI_PANEL_HEIGHT
 
 class Game:
-    # Owns the loop, timing, 
-    # input dispatch, and high‑level state (running, paused, game over).
     def __init__(self):
         pg.init()
         self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE)
@@ -47,7 +45,6 @@ class Game:
         for event in pg.event.get():
             if event.type == pg.QUIT:
                 return False
-            snake_direction = self.snake.get_direction()
             new_direction = self.input_handler.handle_event(event)
             if new_direction:
                 self.snake.set_direction(new_direction)
@@ -73,9 +70,10 @@ class Game:
             self.status = game_status
 
     def _render(self):
+        self.board.refresh_entities(self.snake.snake, self.food.position)
         self.renderer.draw_board()
-        self.food.draw_food(self.screen)
         self.snake.draw_snake(self.screen)
+        self.food.draw_food(self.screen)
         self.renderer.draw_game_status_panel(
             self.status, self.food_eaten, self.snake.get_direction()
         )
