@@ -1,21 +1,27 @@
 import pygame as pg
-from game import (
-    Board,
-    Snake,
-    Food,
-    Renderer,
-    UI_PANEL_HEIGHT,
-    SCREEN_WIDTH,
-    SCREEN_HEIGHT,
-    CELL_SIZE,
-    Direction,
-)
+from pathlib import Path
+import sys
+
+PROJECT_ROOT = Path(__file__).resolve().parent.parent
+GAME_DIR = PROJECT_ROOT / "game"
+
+for path in (PROJECT_ROOT, GAME_DIR):
+    if str(path) not in sys.path:
+        sys.path.insert(0, str(path))
+
+from state_encoding import State_Encoding
+from game.board import Board
+from game.enums import *
+from game.snake import Snake
+from game.food import Food
+from game.renderer import Renderer
+from game.constants import *
 
 
 class Snake_Env:
     def __init__(
         self,
-        render_mode=True,
+        render_mode=False,
         max_steps_per_episode=1000,
         food_reward=10,
         death_penalty=-10,
@@ -31,6 +37,7 @@ class Snake_Env:
         self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE)
         self.snake = Snake()
         self.food = Food(self.board, self.snake)
+        self.state_encoder = State_Encoding()
 
         self.done = False
         self.step_count = 0
@@ -102,32 +109,7 @@ class Snake_Env:
         return next_state, reward, self.done, info
 
     def get_state(self):
-        head_x, head_y = self.snake.snake_head
-        food_x, food_y = self.food.position
-        snake_direction = self.snake.get_direction()
-
-        def is_danger(cell_x, cell_y):
-            next_cell = (cell_x, cell_y)
-            return (
-                (not self.board.in_bounds_cell(next_cell))
-                or (next_cell in self.snake.snake_positions)
-            )
-
-        state = (
-            int(snake_direction == Direction.UP),
-            int(snake_direction == Direction.DOWN),
-            int(snake_direction == Direction.LEFT),
-            int(snake_direction == Direction.RIGHT),
-            int(food_y < head_y),  # food up
-            int(food_y > head_y),  # food down
-            int(food_x < head_x),  # food left
-            int(food_x > head_x),  # food right
-            int(is_danger(head_x, head_y - 1)),  # danger up
-            int(is_danger(head_x, head_y + 1)),  # danger down
-            int(is_danger(head_x - 1, head_y)),  # danger left
-            int(is_danger(head_x + 1, head_y)),  # danger right
-        )
-        return state
+        return self.state_encoder.encode(self.board, self.snake, self.food)
 
     def render(self, fps=30):
         if not self.render_mode:
