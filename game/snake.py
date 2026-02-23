@@ -4,7 +4,6 @@ from constants import CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, SNAKE_HEAD_COLOR
 from enums import Direction
 
 class Snake:
-    # Manages body segments, movement, growth, and self-collision checks.
     def __init__(self):
         start = (
             SCREEN_WIDTH // CELL_SIZE // 2,
@@ -31,17 +30,18 @@ class Snake:
                 screen.blit(self.skin, pixel_position)
 
     def move(self):
-        match self.direction:
-            case Direction.UP:
-                new_head = (self.snake_head[0], self.snake_head[1] - 1)
-            case Direction.DOWN:
-                new_head = (self.snake_head[0], self.snake_head[1] + 1)
-            case Direction.LEFT:
-                new_head = (self.snake_head[0] - 1, self.snake_head[1])
-            case Direction.RIGHT:
-                new_head = (self.snake_head[0] + 1, self.snake_head[1])
-            case _:
-                return
+        direction_value = self.direction.value if hasattr(self.direction, 'value') else self.direction
+        
+        if direction_value == Direction.UP.value:
+            new_head = (self.snake_head[0], self.snake_head[1] - 1)
+        elif direction_value == Direction.DOWN.value:
+            new_head = (self.snake_head[0], self.snake_head[1] + 1)
+        elif direction_value == Direction.LEFT.value:
+            new_head = (self.snake_head[0] - 1, self.snake_head[1])
+        elif direction_value == Direction.RIGHT.value:
+            new_head = (self.snake_head[0] + 1, self.snake_head[1])
+        else:
+            return
 
         if self.pending_growth > 0:
             self.pending_growth -= 1
@@ -60,7 +60,6 @@ class Snake:
         return self.direction
     
     def set_direction(self, new_direction):
-        # Prevent reversing direction directly.
         opposite_directions = {
             Direction.UP: Direction.DOWN,
             Direction.DOWN: Direction.UP,

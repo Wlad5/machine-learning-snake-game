@@ -1,6 +1,5 @@
 import pygame as pg
 from constants import UI_PANEL_HEIGHT
-from enums import CellType
 
 class Renderer:
     def __init__(self, screen, board):
