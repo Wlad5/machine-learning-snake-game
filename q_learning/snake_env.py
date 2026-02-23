@@ -58,6 +58,12 @@ class Snake_Env:
     def reset(self):
         self.snake = Snake()
         self.food = Food(self.board, self.snake)
+        
+        # Ensure the snake has Direction.RIGHT set initially
+        self.snake.set_direction(Direction.RIGHT)
+        
+        # Refresh board with initial positions
+        self.board.refresh_entities(self.snake.snake, self.food.position)
 
         self.step_count = 0
         self.score = 0

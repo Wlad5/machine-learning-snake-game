@@ -5,11 +5,15 @@ class State_Encoding:
         head_x, head_y = snake.snake_head
         food_x, food_y = food.position
         snake_direction = snake.get_direction()
+        
+        # Use both == and .value comparison for robustness
+        direction_value = snake_direction.value if hasattr(snake_direction, 'value') else snake_direction
+        
         state = (
-            int(snake_direction == Direction.UP),       # direction UP
-            int(snake_direction == Direction.DOWN),     # direction DOWN
-            int(snake_direction == Direction.LEFT),     # direction LEFT
-            int(snake_direction == Direction.RIGHT),    # direction RIGHT
+            int(direction_value == Direction.UP.value),       # direction UP
+            int(direction_value == Direction.DOWN.value),     # direction DOWN
+            int(direction_value == Direction.LEFT.value),     # direction LEFT
+            int(direction_value == Direction.RIGHT.value),    # direction RIGHT
             int(food_y < head_y),  # food up
             int(food_y > head_y),  # food down
             int(food_x < head_x),  # food left
