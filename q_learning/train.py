@@ -17,15 +17,15 @@ def train(
     num_episodes=100,
     render=True,
     fps=10,
-    learning_rate=0.1,
-    gamma=0.9,
+    learning_rate=0.4,
+    gamma=0.6,
     epsilon=1.0,
     epsilon_min=0.01,
     epsilon_decay=0.995,
-    food_reward=10,
-    death_penalty=-10,
-    per_step_reward=-0.1,
-    max_steps_per_episode=1000,
+    food_reward=100,
+    death_penalty=-100,
+    per_step_reward=-1,
+    max_steps_per_episode=5000,
 ):
     print("=" * 80)
     print(f"Training Started: {datetime.now().strftime('%Y-%m-%d %H:%M:%S')}")
@@ -79,7 +79,7 @@ def train(
             
             while not episode_done:
                 action = agent.choose_action(state)
-                                
+                
                 next_state, reward, done, info = env.step(action)
                 
                 agent.learn(state, action, reward, next_state, done)
@@ -144,7 +144,16 @@ def train(
 
 if __name__ == "__main__":
     agent, rewards, scores, steps = train(
-        num_episodes=100,
+        num_episodes=1000,
         render=True,
-        fps=10,
+        fps=60,
+        learning_rate=0.1,
+        gamma=0.9,  
+        epsilon=1.0,
+        epsilon_min=0.01,
+        epsilon_decay=0.995,
+        food_reward=100,
+        death_penalty=-50,
+        per_step_reward=-1,
+        max_steps_per_episode=1000,
         )

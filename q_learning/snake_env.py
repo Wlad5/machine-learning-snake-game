@@ -39,6 +39,7 @@ class Snake_Env:
         self.food = Food(self.board, self.snake)
         self.state_encoder = State_Encoding()
 
+        self.game_status = GameStatus.RUNNING
         self.done = False
         self.step_count = 0
         self.score = 0
@@ -105,6 +106,8 @@ class Snake_Env:
             reward += self.food_reward
             self.snake.grow()
             self.food.delete_food()
+            length_reward = len(self.snake.snake) * 2
+            reward += length_reward
 
         if self.step_count >= self.max_steps_per_episode:
             self.done = True
@@ -127,6 +130,7 @@ class Snake_Env:
 
         self.board.refresh_entities(self.snake.snake, self.food.position)
         self.renderer.draw_board()
+        self.renderer.draw_game_status_panel(self.game_status, self.score, self.snake.get_direction())
         self.snake.draw_snake(self.screen)
         self.food.draw_food(self.screen)
         pg.display.flip()
