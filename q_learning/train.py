@@ -23,6 +23,7 @@ def train(
     epsilon_min=0.01,
     epsilon_decay=0.995,
     food_reward=100,
+    reward_for_winning=1000,
     death_penalty=-100,
     per_step_reward=-1,
     max_steps_per_episode=5000,
@@ -50,6 +51,7 @@ def train(
         food_reward=food_reward,
         death_penalty=death_penalty,
         per_step_reward=per_step_reward,
+        reward_for_winning=reward_for_winning,
     )
     
     agent = Q_learning_Agent(
@@ -65,6 +67,7 @@ def train(
     episode_rewards = []
     episode_scores = []
     episode_steps = []
+    episode_wins = []
     
     try:
         for episode in range(num_episodes):
@@ -93,6 +96,9 @@ def train(
                     if episode == 0 and env.step_count <= 5:
                         print(f"  -> Frame rendered")
             
+            total_cells = env.board.cols * env.board.rows
+            episode_win = len(env.snake.snake) >= total_cells
+            episode_wins.append(int(episode_win))
             agent.decay_epsilon()
             
             # Summary for first episode
@@ -129,6 +135,7 @@ def train(
         print(f"  Average Score: {sum(episode_scores) / num_episodes:.2f}")
         print(f"  Average Steps: {sum(episode_steps) / num_episodes:.1f}")
         print(f"  Best Score: {max(episode_scores)}")
+        print(f"  Total Wins: {sum(episode_wins)}")
         print(f"  Final Epsilon: {agent.epsilon:.4f}")
         print("=" * 80)
         
@@ -144,16 +151,17 @@ def train(
 
 if __name__ == "__main__":
     agent, rewards, scores, steps = train(
-        num_episodes=1000,
+        num_episodes=30000,
         render=True,
-        fps=60,
+        fps=5000,
         learning_rate=0.1,
         gamma=0.9,  
         epsilon=1.0,
         epsilon_min=0.01,
         epsilon_decay=0.995,
         food_reward=100,
-        death_penalty=-50,
-        per_step_reward=-1,
-        max_steps_per_episode=1000,
+        reward_for_winning=2000,
+        death_penalty=-300,
+        per_step_reward=-0.1,
+        max_steps_per_episode=5000,
         )

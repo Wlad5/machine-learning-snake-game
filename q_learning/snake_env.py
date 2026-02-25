@@ -26,6 +26,7 @@ class Snake_Env:
         food_reward=10,
         death_penalty=-10,
         per_step_reward=-0.1,
+        reward_for_winning=1000,
     ):
         pg.init()
         self.render_mode = render_mode
@@ -33,6 +34,7 @@ class Snake_Env:
         self.food_reward = food_reward
         self.death_penalty = death_penalty
         self.per_step_reward = per_step_reward
+        self.reward_for_winning = reward_for_winning
 
         self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE)
         self.snake = Snake()
@@ -105,9 +107,14 @@ class Snake_Env:
             self.score += 1
             reward += self.food_reward
             self.snake.grow()
-            self.food.delete_food()
-            length_reward = len(self.snake.snake) * 2
+            length_reward = len(self.snake.snake) * 10
             reward += length_reward
+    
+            total_cells = self.board.cols * self.board.rows
+            if len(self.snake.snake) >= total_cells:
+                reward += self.reward_for_winning
+            else:
+                self.food.delete_food()
 
         if self.step_count >= self.max_steps_per_episode:
             self.done = True
