@@ -2,9 +2,13 @@ import sys
 from pathlib import Path
 from training_config import TrainingConfig, AgentConfig, RewardConfig, EnvironmentConfig
 from training_stats import TrainingStatistics, EpisodeResult
+import pickle
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 GAME_DIR = PROJECT_ROOT / "game"
+CURRENT_DIR = Path(__file__).resolve().parent
+history_file = CURRENT_DIR / "training_stats.csv"
+q_table_file = CURRENT_DIR / "q_learning_q_table.pkl"
 
 for path in (PROJECT_ROOT, GAME_DIR):
     if str(path) not in sys.path:
@@ -85,9 +89,11 @@ def train(config: TrainingConfig):
                 reward=episode_reward,
                 score=info["score"],
                 steps=info["steps"],
-                win=episode_win
+                win=episode_win,
+                epsilon=agent.epsilon,
             )
-            stats.add_episode(result)
+            stats.add_episode(result, episode)
+            stats.save_to_csv(str(history_file))
                     
         final_stats = stats.get_final_stats()
         print(f"  Total Episodes:   {final_stats['total_episodes']}")
@@ -98,6 +104,8 @@ def train(config: TrainingConfig):
         print(f"  Total Wins:       {final_stats['total_wins']}")
         print(f"  Final Epsilon:    {agent.epsilon:.4f}")
         print("=" * 80)
+        with open(q_table_file, "wb") as f:
+            pickle.dump(dict(agent.q_table), f)
         
     except KeyboardInterrupt:
         print("\n\nTraining interrupted by user")
@@ -109,7 +117,7 @@ def train(config: TrainingConfig):
 
 if __name__ == "__main__":
     config = TrainingConfig(
-        num_episodes=2000,
+        num_episodes=1000,
         agent_config = AgentConfig(
             learning_rate   = 0.1,
             gamma           = 0.9,
