@@ -6,7 +6,6 @@ class State_Encoding:
         food_x, food_y = food.position
         snake_direction = snake.get_direction()
         
-        # Use both == and .value comparison for robustness
         direction_value = snake_direction.value if hasattr(snake_direction, 'value') else snake_direction
         
         state = (

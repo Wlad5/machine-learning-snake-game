@@ -52,7 +52,7 @@ class Snake_Env:
 
         if self.render_mode:
             self.screen = pg.display.set_mode(
-                (self.board.get_width(), self.board.get_height() + UI_PANEL_HEIGHT)
+                (WINDOW_HEIGHT, WINDOW_WIDTH)
             )
             pg.display.set_caption("Snake Game")
             self.clock = pg.time.Clock()
