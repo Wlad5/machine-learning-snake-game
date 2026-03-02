@@ -6,14 +6,14 @@ from collision_rules import CollisionRules
 from input_handler import InputHandler
 from renderer import Renderer
 from enums import GameStatus
-from constants import CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, UI_PANEL_HEIGHT
+from constants import CELL_SIZE, WINDOW_HEIGHT, WINDOW_WIDTH, SCREEN_HEIGHT, SCREEN_WIDTH
 
 class Game:
     def __init__(self):
         pg.init()
         self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE)
         self.screen = pg.display.set_mode(
-            (self.board.get_width(), self.board.get_height() + UI_PANEL_HEIGHT)
+            (WINDOW_WIDTH, WINDOW_HEIGHT)
         )
         pg.display.set_caption("Snake Game")
 
