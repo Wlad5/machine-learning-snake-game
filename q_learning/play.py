@@ -2,7 +2,9 @@ import sys
 import pickle
 import numpy as np
 from pathlib import Path
+from snake_env import Snake_Env
 from collections import defaultdict
+from q_learning_agent import Q_learning_Agent
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CURRENT_DIR = Path(__file__).resolve().parent
@@ -13,8 +15,6 @@ for path in (PROJECT_ROOT, GAME_DIR):
     if str(path) not in sys.path:
         sys.path.insert(0, str(path))
 
-from q_learning_agent import Q_learning_Agent
-from snake_env import Snake_Env
 
 def load_q_table(filepath):
     try:
@@ -83,4 +83,4 @@ def play(num_episodes=5, fps=10):
         env.close() if hasattr(env, 'close') else None
 
 if __name__ == "__main__":
-    play(num_episodes=20, fps=1)
+    play(num_episodes=20, fps=60)

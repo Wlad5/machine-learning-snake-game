@@ -117,7 +117,7 @@ def train(config: TrainingConfig):
 
 if __name__ == "__main__":
     config = TrainingConfig(
-        num_episodes=1000,
+        num_episodes=5000,
         agent_config = AgentConfig(
             learning_rate   = 0.1,
             gamma           = 0.9,
@@ -135,7 +135,7 @@ if __name__ == "__main__":
         environment_config = EnvironmentConfig(
             render                  =True,
             fps                     =5000,
-            max_steps_per_episode   =5000,
+            max_steps_per_episode   =2000,
             )
     )
     agent, stats = train(config)
