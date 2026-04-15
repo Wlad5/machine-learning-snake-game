@@ -1,6 +1,7 @@
 import pygame as pg
 from pathlib import Path
 import sys
+from math import sqrt
 
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 GAME_DIR = PROJECT_ROOT / "game"
@@ -23,10 +24,15 @@ class Snake_Env:
         self,
         render_mode=False,
         max_steps_per_episode=1000,
-        food_reward=10,
-        death_penalty=-10,
-        per_step_reward=-0.1,
-        reward_for_winning=1000,
+        food_reward=50,
+        death_penalty=-50,
+        per_step_reward=-0.01,
+        reward_for_winning=10000,
+        distance_bonus=1.0,
+        distance_penalty=-0.5,
+        length_bonus_multiplier=10,
+        milestone_rewards=None,
+        state_encoder=None,
     ):
         pg.init()
         self.render_mode = render_mode
@@ -35,16 +41,21 @@ class Snake_Env:
         self.death_penalty = death_penalty
         self.per_step_reward = per_step_reward
         self.reward_for_winning = reward_for_winning
+        self.distance_bonus = distance_bonus
+        self.distance_penalty = distance_penalty
+        self.length_bonus_multiplier = length_bonus_multiplier
+        self.milestone_rewards = milestone_rewards or {5: 100, 10: 200, 15: 300, 20: 500}
 
         self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE)
         self.snake = Snake()
         self.food = Food(self.board, self.snake)
-        self.state_encoder = State_Encoding()
+        self.state_encoder = state_encoder if state_encoder is not None else State_Encoding()
 
         self.game_status = GameStatus.RUNNING
         self.done = False
         self.step_count = 0
         self.score = 0
+        self.prev_distance_to_food = 0
 
         self.screen = None
         self.clock = None
@@ -57,6 +68,16 @@ class Snake_Env:
             pg.display.set_caption("Snake Game")
             self.clock = pg.time.Clock()
             self.renderer = Renderer(self.screen, self.board)
+
+    def _calculate_distance_to_food(self, snake_head, food_pos):
+        return abs(snake_head[0] - food_pos[0]) + abs(snake_head[1] - food_pos[1])
+
+    def _get_distance_reward(self, old_distance, new_distance):
+        if new_distance < old_distance:
+            return self.distance_bonus
+        elif new_distance > old_distance:
+            return self.distance_penalty
+        return 0.0
 
     def reset(self):
         self.snake = Snake()
@@ -71,6 +92,11 @@ class Snake_Env:
         self.step_count = 0
         self.score = 0
         self.done = False
+        
+        # Initialize distance tracking
+        self.prev_distance_to_food = self._calculate_distance_to_food(
+            self.snake.snake_head, self.food.position
+        )
 
         return self.get_state()
 
@@ -79,6 +105,7 @@ class Snake_Env:
             info = {"score": self.score, "steps": self.step_count}
             return self.get_state(), 0.0, True, info
 
+        # Base reward per step (minimal time pressure)
         reward = float(self.per_step_reward)
 
         action_to_direction = {
@@ -101,20 +128,46 @@ class Snake_Env:
         hit_self = head in body_without_head
 
         if hit_wall or hit_self:
+            # Death penalty for hitting wall or self
             reward += self.death_penalty
             self.done = True
+        
         elif head == self.food.position:
+            # FOOD EATEN - Multiple rewards
             self.score += 1
+            
+            # Base food reward
             reward += self.food_reward
-            self.snake.grow()
-            length_reward = len(self.snake.snake) * 10
+            
+            # Growth bonus (exponential to incentivize length)
+            length_reward = len(self.snake.snake) ** 1.2 * self.length_bonus_multiplier
             reward += length_reward
-    
+            
+            # Milestone bonuses (NEW)
+            if self.score in self.milestone_rewards:
+                milestone_bonus = self.milestone_rewards[self.score]
+                reward += milestone_bonus
+            
+            # Check if won
+            self.snake.grow()
             total_cells = self.board.cols * self.board.rows
             if len(self.snake.snake) >= total_cells:
                 reward += self.reward_for_winning
+                self.done = True
             else:
                 self.food.delete_food()
+            
+            # Reset distance tracking after eating
+            self.prev_distance_to_food = self._calculate_distance_to_food(
+                head, self.food.position
+            )
+        
+        else:
+            # Distance-based reward shaping (guides agent toward food)
+            current_distance = self._calculate_distance_to_food(head, self.food.position)
+            distance_reward = self._get_distance_reward(self.prev_distance_to_food, current_distance)
+            reward += distance_reward
+            self.prev_distance_to_food = current_distance
 
         if self.step_count >= self.max_steps_per_episode:
             self.done = True

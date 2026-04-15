@@ -7,8 +7,6 @@ import pickle
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 GAME_DIR = PROJECT_ROOT / "game"
 CURRENT_DIR = Path(__file__).resolve().parent
-history_file = CURRENT_DIR / "training_stats.csv"
-q_table_file = CURRENT_DIR / "q_learning_q_table.pkl"
 
 for path in (PROJECT_ROOT, GAME_DIR):
     if str(path) not in sys.path:
@@ -16,9 +14,14 @@ for path in (PROJECT_ROOT, GAME_DIR):
 
 from q_learning_agent import Q_learning_Agent
 from snake_env import Snake_Env
+from state_encoding import State_Encoding
+from state_encoding_distance import DistanceStateEncoding
+from state_encoding_raycasting import RayCastingStateEncoding
+from state_encoding_localgrid import LocalGridStateEncoding
+from state_encoding_bodyawareness import BodyAwarenessStateEncoding
 
 
-def train(config: TrainingConfig):
+def train(config: TrainingConfig, encoding_name: str, state_encoder):
     num_episodes                = config.num_episodes
 
     render                      = config.environment_config.render
@@ -38,6 +41,9 @@ def train(config: TrainingConfig):
     
     max_steps_per_episode       = config.environment_config.max_steps_per_episode
     
+    history_file = CURRENT_DIR / f"training_stats_{encoding_name}.csv"
+    q_table_file = CURRENT_DIR / f"q_learning_q_table_{encoding_name}.pkl"
+    
     env = Snake_Env(
         render_mode             = render,
         max_steps_per_episode   = max_steps_per_episode,
@@ -45,6 +51,7 @@ def train(config: TrainingConfig):
         death_penalty           = death_penalty,
         per_step_reward         = per_step_reward,
         reward_for_winning      = reward_for_winning,
+        state_encoder           = state_encoder,
     )
     
     agent = Q_learning_Agent(
@@ -60,7 +67,7 @@ def train(config: TrainingConfig):
     
     try:
         for episode in range(num_episodes):
-            print(f"\nEpisode {episode + 1}/{num_episodes}")
+            print(f"\nEpisode {episode + 1}/{num_episodes} {encoding_name.upper()}")
             state = env.reset()
             episode_reward = 0.0
             episode_done = False
@@ -104,6 +111,8 @@ def train(config: TrainingConfig):
         print(f"  Total Wins:       {final_stats['total_wins']}")
         print(f"  Final Epsilon:    {agent.epsilon:.4f}")
         print("=" * 80)
+        print(f">>> {encoding_name.upper()} TRAINING COMPLETE - {final_stats['total_wins']} WINS <<<")
+        print("=" * 80)
         with open(q_table_file, "wb") as f:
             pickle.dump(dict(agent.q_table), f)
         
@@ -117,7 +126,7 @@ def train(config: TrainingConfig):
 
 if __name__ == "__main__":
     config = TrainingConfig(
-        num_episodes=5000,
+        num_episodes=50000,
         agent_config = AgentConfig(
             learning_rate   = 0.1,
             gamma           = 0.9,
@@ -130,12 +139,37 @@ if __name__ == "__main__":
             food_reward         = 100,
             reward_for_winning  = 2000,
             death_penalty       = -300,
-            per_step_reward     = -0.1,
+            per_step_reward     = -0.05,
         ),
         environment_config = EnvironmentConfig(
-            render                  =True,
-            fps                     =5000,
+            render                  =False,
+            fps                     =100000,
             max_steps_per_episode   =2000,
             )
     )
-    agent, stats = train(config)
+    
+    # Define all state encodings
+    encodings = {
+        'basic': State_Encoding(),
+        'distance': DistanceStateEncoding(),
+        'raycasting': RayCastingStateEncoding(),
+        'localgrid': LocalGridStateEncoding(),
+        'bodyaware': BodyAwarenessStateEncoding(),
+    }
+    
+    # Train with each encoding
+    training_wins = {}
+    for encoding_name, encoding in encodings.items():
+        print(f"\n{'='*80}")
+        print(f"Training with {encoding_name.upper()} encoding...")
+        print(f"{'='*80}")
+        agent, stats = train(config, encoding_name, encoding)
+        final_stats = stats.get_final_stats()
+        training_wins[encoding_name] = final_stats['total_wins']
+    
+    print(f"\n\n{'='*80}")
+    print("TRAINING SUMMARY - WINS BY STATE ENCODING")
+    print(f"{'='*80}")
+    for encoding_name, wins in training_wins.items():
+        print(f"{encoding_name.upper():15} : {wins} wins")
+    print(f"{'='*80}")
