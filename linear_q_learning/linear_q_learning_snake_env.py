@@ -19,11 +19,6 @@ from game.constants import *
 
 
 class LinearQLearningEnvironment:
-    """
-    Environment for training a Linear Q-Learning agent on the Snake game.
-    Provides game mechanics and rendering capabilities.
-    """
-    
     def __init__(
         self,
         render_mode=False,
@@ -32,18 +27,8 @@ class LinearQLearningEnvironment:
         death_penalty=-10,
         per_step_reward=-0.1,
         reward_for_winning=1000,
+        state_encoder=None,
     ):
-        """
-        Initialize the Linear Q-Learning environment.
-        
-        Args:
-            render_mode: Whether to render the game visually during training
-            max_steps_per_episode: Maximum steps allowed per episode
-            food_reward: Reward for eating food
-            death_penalty: Penalty for dying
-            per_step_reward: Reward/penalty for each step
-            reward_for_winning: Reward for filling the entire board
-        """
         pg.init()
         self.render_mode = render_mode
         self.max_steps_per_episode = max_steps_per_episode
@@ -55,7 +40,7 @@ class LinearQLearningEnvironment:
         self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE)
         self.snake = Snake()
         self.food = Food(self.board, self.snake)
-        self.state_encoder = LinearQLearningStateEncoding()
+        self.state_encoder = state_encoder if state_encoder is not None else LinearQLearningStateEncoding()
 
         self.game_status = GameStatus.RUNNING
         self.done = False
@@ -75,12 +60,6 @@ class LinearQLearningEnvironment:
             self.renderer = Renderer(self.screen, self.board)
 
     def reset(self):
-        """
-        Reset the environment for a new episode.
-        
-        Returns:
-            tuple: Initial state (feature vector)
-        """
         self.snake = Snake()
         self.food = Food(self.board, self.snake)
         
@@ -97,15 +76,6 @@ class LinearQLearningEnvironment:
         return self.get_state()
 
     def step(self, action):
-        """
-        Execute one step of the environment with the given action.
-        
-        Args:
-            action: Action index (0=UP, 1=DOWN, 2=LEFT, 3=RIGHT)
-            
-        Returns:
-            tuple: (next_state, reward, done, info)
-        """
         if self.done:
             info = {"score": self.score, "steps": self.step_count}
             return self.get_state(), 0.0, True, info
@@ -156,21 +126,9 @@ class LinearQLearningEnvironment:
         return next_state, reward, self.done, info
 
     def get_state(self):
-        """
-        Get the encoded state of the current game.
-        
-        Returns:
-            tuple: State feature vector
-        """
         return self.state_encoder.encode(self.board, self.snake, self.food)
 
     def render(self, fps=30):
-        """
-        Render the current game state to the screen.
-        
-        Args:
-            fps: Frames per second for rendering
-        """
         if not self.render_mode:
             return
 
@@ -189,6 +147,5 @@ class LinearQLearningEnvironment:
             self.clock.tick(fps)
 
     def close(self):
-        """Close the environment and pygame."""
         if self.render_mode:
             pg.quit()
