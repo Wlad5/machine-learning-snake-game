@@ -13,6 +13,29 @@ for path in (PROJECT_ROOT, GAME_DIR):
 
 from dqn_agent import DQNAgent
 from dqn_snake_env import DQNSnakeEnv
+from dqn_state_encoding import DQNStateEncoding
+from dqn_state_encoding_distance import DQNDistanceStateEncoding
+from dqn_state_encoding_raycasting import DQNRayCastingStateEncoding
+from dqn_state_encoding_localgrid import DQNLocalGridStateEncoding
+from dqn_state_encoding_bodyawareness import DQNBodyAwarenessStateEncoding
+
+# Feature size mapping for each encoding
+ENCODING_FEATURE_SIZES = {
+    'basic': 12,
+    'distance': 13,
+    'raycasting': 20,
+    'localgrid': 24,
+    'bodyaware': 14,
+}
+
+# Encoding class mapping
+ENCODING_CLASSES = {
+    'basic': DQNStateEncoding,
+    'distance': DQNDistanceStateEncoding,
+    'raycasting': DQNRayCastingStateEncoding,
+    'localgrid': DQNLocalGridStateEncoding,
+    'bodyaware': DQNBodyAwarenessStateEncoding,
+}
 
 
 def play_dqn(
@@ -21,6 +44,7 @@ def play_dqn(
     render=True,
     fps=30,
     max_steps_per_episode=3000,
+    encoding_name='basic',
 ):
     try:
         agent = DQNAgent.load(model_path, epsilon=0.0)  # Set epsilon to 0 for greedy play
@@ -29,11 +53,19 @@ def play_dqn(
         print("Please train the model first using dqn_train.py")
         return
     
-    # Create environment
+    # Get feature size and encoding class for this encoding
+    encoding_class = ENCODING_CLASSES.get(encoding_name, DQNStateEncoding)
+    state_encoder = encoding_class()
+    
+    # Create environment with the specified state encoder
     env = DQNSnakeEnv(
         render_mode=render,
         max_steps_per_episode=max_steps_per_episode,
+        state_encoder=state_encoder,
     )
+    
+    print(f"Playing with {encoding_name.upper()} encoding...")
+    print("=" * 80)
     
     episode_scores = []
     episode_rewards = []
@@ -116,6 +148,13 @@ if __name__ == "__main__":
         default=3000,
         help="Maximum steps per episode (default: 3000)",
     )
+    parser.add_argument(
+        "--encoding",
+        type=str,
+        default='basic',
+        choices=['basic', 'distance', 'raycasting', 'localgrid', 'bodyaware'],
+        help="State encoding to use (default: basic)",
+    )
     
     args = parser.parse_args()
     
@@ -125,4 +164,5 @@ if __name__ == "__main__":
         render=not args.no_render,
         fps=args.fps,
         max_steps_per_episode=args.max_steps,
+        encoding_name=args.encoding,
     )

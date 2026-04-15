@@ -27,6 +27,7 @@ class DQNSnakeEnv:
         death_penalty=-10,
         per_step_reward=-0.1,
         reward_for_winning=1000,
+        state_encoder=None,
     ):
         pg.init()
         self.render_mode = render_mode
@@ -39,7 +40,7 @@ class DQNSnakeEnv:
         self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE)
         self.snake = Snake()
         self.food = Food(self.board, self.snake)
-        self.state_encoder = DQNStateEncoding()
+        self.state_encoder = state_encoder if state_encoder is not None else DQNStateEncoding()
 
         self.game_status = GameStatus.RUNNING
         self.done = False
