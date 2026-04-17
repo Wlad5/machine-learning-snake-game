@@ -41,8 +41,12 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
     
     max_steps_per_episode       = config.environment_config.max_steps_per_episode
     
-    history_file = CURRENT_DIR / f"training_stats_{encoding_name}.csv"
-    q_table_file = CURRENT_DIR / f"q_learning_q_table_{encoding_name}.pkl"
+    training_csv_dir = CURRENT_DIR / "training_csv"
+    training_csv_dir.mkdir(parents=True, exist_ok=True)
+    history_file = training_csv_dir / f"training_stats_{encoding_name}.csv"
+    models_dir = CURRENT_DIR / "models"
+    models_dir.mkdir(parents=True, exist_ok=True)
+    q_table_file = models_dir / f"q_learning_q_table_{encoding_name}.pkl"
     
     env = Snake_Env(
         render_mode             = render,
@@ -100,7 +104,8 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
                 epsilon=agent.epsilon,
             )
             stats.add_episode(result, episode)
-            stats.save_to_csv(str(history_file))
+            if (episode + 1) % 100 == 0 or (episode + 1) == num_episodes:
+                stats.save_to_csv(str(history_file))
                     
         final_stats = stats.get_final_stats()
         print(f"  Total Episodes:   {final_stats['total_episodes']}")
@@ -126,7 +131,7 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
 
 if __name__ == "__main__":
     config = TrainingConfig(
-        num_episodes=50000,
+        num_episodes=3000,
         agent_config = AgentConfig(
             learning_rate   = 0.1,
             gamma           = 0.9,
@@ -144,7 +149,7 @@ if __name__ == "__main__":
         environment_config = EnvironmentConfig(
             render                  =False,
             fps                     =100000,
-            max_steps_per_episode   =2000,
+            max_steps_per_episode   =3000,
             )
     )
     

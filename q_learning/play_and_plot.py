@@ -18,6 +18,9 @@ from state_encoding_bodyawareness import BodyAwarenessStateEncoding
 PROJECT_ROOT = Path(__file__).resolve().parent.parent
 CURRENT_DIR = Path(__file__).resolve().parent
 GAME_DIR = PROJECT_ROOT / "game"
+TRAINING_CSV_DIR = CURRENT_DIR / "training_csv"
+TEST_CSV_DIR = CURRENT_DIR / "test_csv"
+PLOTS_DIR = CURRENT_DIR / "test_plots"
 
 for path in (PROJECT_ROOT, GAME_DIR):
     if str(path) not in sys.path:
@@ -53,8 +56,9 @@ def load_all_q_tables():
     q_tables = {}
     encodings = ['basic', 'bodyaware', 'distance', 'localgrid', 'raycasting']
     
+    models_dir = CURRENT_DIR / "models"
     for encoding in encodings:
-        q_table_file = CURRENT_DIR / f"q_learning_q_table_{encoding}.pkl"
+        q_table_file = models_dir / f"q_learning_q_table_{encoding}.pkl"
         q_table = load_q_table(q_table_file)
         if q_table is not None:
             q_tables[encoding] = q_table
@@ -68,7 +72,7 @@ def load_training_data():
     encodings = ['basic', 'bodyaware', 'distance', 'localgrid', 'raycasting']
     
     for encoding in encodings:
-        filepath = CURRENT_DIR / f"training_stats_{encoding}.csv"
+        filepath = TRAINING_CSV_DIR / f"training_stats_{encoding}.csv"
         if filepath.exists():
             data[encoding] = pd.read_csv(filepath)
         else:
@@ -388,10 +392,10 @@ def plot_training_efficiency(data, ax=None):
 
 def generate_and_save_plots(data, output_dir=None):
     if output_dir is None:
-        output_dir = CURRENT_DIR
+        output_dir = PLOTS_DIR
     else:
         output_dir = Path(output_dir)
-        output_dir.mkdir(parents=True, exist_ok=True)
+    output_dir.mkdir(parents=True, exist_ok=True)
     
     print("\n" + "="*80)
     print("GENERATING AND SAVING PLOTS".center(80))
@@ -549,12 +553,13 @@ if __name__ == "__main__":
             print(f"  Total Wins:     {df['win'].sum():.0f}/{len(df)}")
         
         # Generate and save plots
-        generate_and_save_plots(test_data, output_dir=CURRENT_DIR)
+        generate_and_save_plots(test_data)
         
         # Save test results to CSV
+        TEST_CSV_DIR.mkdir(parents=True, exist_ok=True)
         print("\nSaving test results to CSV files...")
         for encoding in test_data.keys():
-            filename = CURRENT_DIR / f"test_results_{encoding}.csv"
+            filename = TEST_CSV_DIR / f"test_results_{encoding}.csv"
             test_data[encoding].to_csv(filename, index=False)
             print(f"  ✓ Saved: {filename.name}")
         

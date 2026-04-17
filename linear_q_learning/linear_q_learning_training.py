@@ -218,8 +218,12 @@ def train(
         print("=" * 80)
         
         # Save weights and stats
-        weights_file = CURRENT_DIR / f"linear_q_weights_{encoding_name}.pkl"
-        stats_file = CURRENT_DIR / f"linear_q_training_stats_{encoding_name}.csv"
+        models_dir = CURRENT_DIR / "models"
+        models_dir.mkdir(parents=True, exist_ok=True)
+        weights_file = models_dir / f"linear_q_weights_{encoding_name}.pkl"
+        training_csv_dir = CURRENT_DIR / "training_csv"
+        training_csv_dir.mkdir(parents=True, exist_ok=True)
+        stats_file = training_csv_dir / f"linear_q_training_stats_{encoding_name}.csv"
         
         with open(weights_file, "wb") as f:
             pickle.dump(agent.weights, f)
@@ -249,7 +253,7 @@ if __name__ == "__main__":
     }
     
     # Training configuration
-    num_episodes = 10000
+    num_episodes = 3000
     render = False
     render_fps = 100000
     learning_rate = 0.1

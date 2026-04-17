@@ -27,10 +27,14 @@ COLORS = {
 
 WINDOW_SIZE = 50  # For rolling averages
 
+CURRENT_DIR = Path(__file__).resolve().parent
+TRAINING_CSV_DIR = CURRENT_DIR / "training_csv"
+PLOTS_DIR = CURRENT_DIR / "training_plots"
+
 def load_data():
     data = {}
     for encoding, filename in ENCODINGS.items():
-        filepath = Path(__file__).parent / filename
+        filepath = TRAINING_CSV_DIR / filename
         if filepath.exists():
             data[encoding] = pd.read_csv(filepath)
         else:
@@ -56,7 +60,7 @@ def plot_rolling_avg_score(data):
     ax.legend(loc='best')
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(Path(__file__).parent / 'linear_q_plot_1_rolling_avg_score.png', dpi=150)
+    plt.savefig(PLOTS_DIR / 'linear_q_plot_1_rolling_avg_score.png', dpi=150)
     plt.close()
 
 def plot_rolling_avg_reward(data):
@@ -72,7 +76,7 @@ def plot_rolling_avg_reward(data):
     ax.legend(loc='best')
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(Path(__file__).parent / 'linear_q_plot_2_rolling_avg_reward.png', dpi=150)
+    plt.savefig(PLOTS_DIR / 'linear_q_plot_2_rolling_avg_reward.png', dpi=150)
     plt.close()
 
 def plot_success_rate(data):
@@ -89,7 +93,7 @@ def plot_success_rate(data):
     ax.grid(True, alpha=0.3)
     ax.set_ylim([0, 105])
     plt.tight_layout()
-    plt.savefig(Path(__file__).parent / 'linear_q_plot_3_success_rate.png', dpi=150)
+    plt.savefig(PLOTS_DIR / 'linear_q_plot_3_success_rate.png', dpi=150)
     plt.close()
 
 def plot_final_performance(data):
@@ -137,7 +141,7 @@ def plot_final_performance(data):
         ax.tick_params(axis='x', rotation=45)
     
     plt.tight_layout()
-    plt.savefig(Path(__file__).parent / 'linear_q_plot_4_final_performance.png', dpi=150)
+    plt.savefig(PLOTS_DIR / 'linear_q_plot_4_final_performance.png', dpi=150)
     plt.close()
 
 def plot_training_efficiency(data):
@@ -160,7 +164,7 @@ def plot_training_efficiency(data):
     ax.legend(loc='best')
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(Path(__file__).parent / 'linear_q_plot_5_training_efficiency.png', dpi=150)
+    plt.savefig(PLOTS_DIR / 'linear_q_plot_5_training_efficiency.png', dpi=150)
     plt.close()
 
 def plot_reward_distribution(data):
@@ -178,7 +182,7 @@ def plot_reward_distribution(data):
     ax.set_title('Reward Distribution - All Training Episodes', fontsize=13, fontweight='bold')
     ax.grid(True, alpha=0.3, axis='y')
     plt.tight_layout()
-    plt.savefig(Path(__file__).parent / 'linear_q_plot_6_reward_distribution.png', dpi=150)
+    plt.savefig(PLOTS_DIR / 'linear_q_plot_6_reward_distribution.png', dpi=150)
     plt.close()
 
 def plot_stability_variance(data):
@@ -194,7 +198,7 @@ def plot_stability_variance(data):
     ax.legend(loc='best')
     ax.grid(True, alpha=0.3)
     plt.tight_layout()
-    plt.savefig(Path(__file__).parent / 'linear_q_plot_7_stability_variance.png', dpi=150)
+    plt.savefig(PLOTS_DIR / 'linear_q_plot_7_stability_variance.png', dpi=150)
     plt.close()
 
 def main():
@@ -206,6 +210,8 @@ def main():
         return
     
     print(f"Loaded data for {len(data)} encoding(s): {', '.join(data.keys())}")
+    
+    PLOTS_DIR.mkdir(parents=True, exist_ok=True)
     print("\nGenerating plots...")
     
     # Core plots

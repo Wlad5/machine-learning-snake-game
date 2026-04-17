@@ -133,7 +133,9 @@ def train_dqn(
     )
     
     stats = DQNTrainingStats()
-    history_file = CURRENT_DIR / f"dqn_training_stats_{encoding_name}.csv"
+    training_csv_dir = CURRENT_DIR / "training_csv"
+    training_csv_dir.mkdir(parents=True, exist_ok=True)
+    history_file = training_csv_dir / f"dqn_training_stats_{encoding_name}.csv"
     
     try:
         for episode in range(num_episodes):
@@ -213,8 +215,8 @@ def train_dqn(
 if __name__ == "__main__":
     # Configuration
     config = {
-        'num_episodes': 10000,
-        'render': True,
+        'num_episodes': 3000,
+        'render': False,
         'render_fps': 100000,
         'learning_rate': 0.001,
         'gamma': 0.99,
@@ -258,6 +260,12 @@ if __name__ == "__main__":
         )
         _, _, _, total_wins = stats.get_averages()
         training_wins[encoding_name] = int(total_wins)
+        
+        # Save model per encoding
+        models_dir = CURRENT_DIR / "models"
+        models_dir.mkdir(parents=True, exist_ok=True)
+        model_path = models_dir / f"dqn_trained_model_{encoding_name}.pkl"
+        agent.save(str(model_path))
     
     print(f"\n\n{'='*80}")
     print("TRAINING SUMMARY - WINS BY STATE ENCODING")
