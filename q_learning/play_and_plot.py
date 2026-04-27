@@ -131,7 +131,7 @@ def test_all_encodings(q_tables, num_episodes=100, show_progress=True):
         }
         
         env = Snake_Env(
-            render_mode=False,  # No rendering for fast testing
+            render_mode=True,  # No rendering for fast testing
             max_steps_per_episode=1000,
             food_reward=10,
             death_penalty=-10,

@@ -85,10 +85,14 @@ def train(
     epsilon=1.0,
     epsilon_min=0.01,
     epsilon_decay=0.995,
-    food_reward=100,
-    death_penalty=-300,
-    per_step_reward=-0.1,
-    reward_for_winning=1000,
+    food_reward=50,
+    death_penalty=-50,
+    per_step_reward=-0.01,
+    reward_for_winning=10000,
+    distance_bonus=1.0,
+    distance_penalty=-0.5,
+    length_bonus_multiplier=10,
+    milestone_rewards=None,
     max_steps_per_episode=1000,
     encoding_name='basic',
     state_encoder=None,
@@ -109,6 +113,10 @@ def train(
         death_penalty: Penalty for dying
         per_step_reward: Reward per step (usually negative)
         reward_for_winning: Reward for winning
+        distance_bonus: Reward for reducing distance to food
+        distance_penalty: Penalty for increasing distance to food
+        length_bonus_multiplier: Multiplier for snake length growth bonus
+        milestone_rewards: Score milestone bonus map
         max_steps_per_episode: Max steps per episode
         encoding_name: Name of the encoding (basic, distance, raycasting, localgrid, bodyaware)
         state_encoder: State encoder object (if None, creates one based on encoding_name)
@@ -138,6 +146,10 @@ def train(
         death_penalty=death_penalty,
         per_step_reward=per_step_reward,
         reward_for_winning=reward_for_winning,
+        distance_bonus=distance_bonus,
+        distance_penalty=distance_penalty,
+        length_bonus_multiplier=length_bonus_multiplier,
+        milestone_rewards=milestone_rewards,
         state_encoder=state_encoder,
     )
     
@@ -253,8 +265,8 @@ if __name__ == "__main__":
     }
     
     # Training configuration
-    num_episodes = 3000
-    render = False
+    num_episodes = 300
+    render = True
     render_fps = 100000
     learning_rate = 0.1
     gamma = 0.9
@@ -263,9 +275,13 @@ if __name__ == "__main__":
     epsilon_decay = 0.995
     food_reward = 100
     death_penalty = -300
-    per_step_reward = -0.1
-    reward_for_winning = 1000
-    max_steps_per_episode = 2000
+    per_step_reward = -0.05
+    reward_for_winning = 2000
+    distance_bonus = 1.0
+    distance_penalty = -0.5
+    length_bonus_multiplier = 10
+    milestone_rewards = {5: 100, 10: 200, 15: 300, 20: 500}
+    max_steps_per_episode = 3000
     
     # Train with each encoding
     training_results = {}
@@ -286,6 +302,10 @@ if __name__ == "__main__":
             death_penalty=death_penalty,
             per_step_reward=per_step_reward,
             reward_for_winning=reward_for_winning,
+            distance_bonus=distance_bonus,
+            distance_penalty=distance_penalty,
+            length_bonus_multiplier=length_bonus_multiplier,
+            milestone_rewards=milestone_rewards,
             max_steps_per_episode=max_steps_per_episode,
             encoding_name=encoding_name,
             state_encoder=encoding,

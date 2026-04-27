@@ -113,7 +113,15 @@ def test_all_encodings(models, num_episodes=100, show_progress=True):
 
         env = DQNSnakeEnv(
             render_mode=False,
-            max_steps_per_episode=3000,
+            max_steps_per_episode=1000,
+            food_reward=10,
+            death_penalty=-10,
+            per_step_reward=-0.1,
+            reward_for_winning=1000,
+            distance_bonus=1.0,
+            distance_penalty=-0.5,
+            length_bonus_multiplier=10,
+            milestone_rewards={5: 100, 10: 200, 15: 300, 20: 500},
             state_encoder=state_encoder,
         )
 
