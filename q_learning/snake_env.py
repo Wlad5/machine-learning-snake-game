@@ -23,6 +23,9 @@ class Snake_Env:
     def __init__(
         self,
         render_mode=False,
+        grid_cols=None,
+        grid_rows=None,
+        cell_size=CELL_SIZE,
         max_steps_per_episode=1000,
         food_reward=50,
         death_penalty=-50,
@@ -46,8 +49,16 @@ class Snake_Env:
         self.length_bonus_multiplier = length_bonus_multiplier
         self.milestone_rewards = milestone_rewards or {5: 100, 10: 200, 15: 300, 20: 500}
 
-        self.board = Board(SCREEN_WIDTH, SCREEN_HEIGHT, CELL_SIZE)
-        self.snake = Snake()
+        if grid_cols is None:
+            grid_cols = SCREEN_WIDTH // CELL_SIZE
+        if grid_rows is None:
+            grid_rows = SCREEN_HEIGHT // CELL_SIZE
+
+        board_width = int(grid_cols) * int(cell_size)
+        board_height = int(grid_rows) * int(cell_size)
+
+        self.board = Board(board_width, board_height, cell_size)
+        self.snake = Snake(cols=self.board.cols, rows=self.board.rows, cell_size=cell_size)
         self.food = Food(self.board, self.snake)
         self.state_encoder = state_encoder if state_encoder is not None else State_Encoding()
 
@@ -63,7 +74,7 @@ class Snake_Env:
 
         if self.render_mode:
             self.screen = pg.display.set_mode(
-                (WINDOW_HEIGHT, WINDOW_WIDTH)
+                (self.board.get_width(), self.board.get_height() + UI_PANEL_HEIGHT)
             )
             pg.display.set_caption("Snake Game")
             self.clock = pg.time.Clock()
@@ -80,7 +91,11 @@ class Snake_Env:
         return 0.0
 
     def reset(self):
-        self.snake = Snake()
+        self.snake = Snake(
+            cols=self.board.cols,
+            rows=self.board.rows,
+            cell_size=self.board.get_cell_size(),
+        )
         self.food = Food(self.board, self.snake)
         
         # Ensure the snake has Direction.RIGHT set initially

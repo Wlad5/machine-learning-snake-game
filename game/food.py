@@ -1,6 +1,6 @@
 import pygame as pg
 import random as rd
-from constants import FOOD_COLOR, CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT
+from constants import FOOD_COLOR
 
 class Food:
     # Holds position and respawn logic (validated against Snake).
@@ -21,7 +21,8 @@ class Food:
 
     def draw_food(self, screen):
         pixel_x, pixel_y = self.board.to_pixel(self.position)
-        food_rectangle = pg.Rect(pixel_x, pixel_y, CELL_SIZE, CELL_SIZE)
+        cell_size = self.board.get_cell_size()
+        food_rectangle = pg.Rect(pixel_x, pixel_y, cell_size, cell_size)
         pg.draw.rect(screen, self.color, food_rectangle)
     
     def delete_food(self):

@@ -4,26 +4,29 @@ from constants import CELL_SIZE, SCREEN_WIDTH, SCREEN_HEIGHT, SNAKE_HEAD_COLOR
 from enums import Direction
 
 class Snake:
-    def __init__(self):
-        start = (
-            SCREEN_WIDTH // CELL_SIZE // 2,
-            SCREEN_HEIGHT // CELL_SIZE // 2,
-        )
+    def __init__(self, cols=None, rows=None, cell_size=CELL_SIZE):
+        if cols is None:
+            cols = SCREEN_WIDTH // CELL_SIZE
+        if rows is None:
+            rows = SCREEN_HEIGHT // CELL_SIZE
+
+        self.cell_size = cell_size
+        start = (cols // 2, rows // 2)
         self.snake = deque([start])
         self.snake_positions = {start}
         self.snake_head = start
         self.direction = Direction.RIGHT
 
-        self.skin = pg.Surface((CELL_SIZE, CELL_SIZE))
+        self.skin = pg.Surface((self.cell_size, self.cell_size))
         self.skin.fill((255, 255, 255))
-        self.head_skin = pg.Surface((CELL_SIZE, CELL_SIZE))
+        self.head_skin = pg.Surface((self.cell_size, self.cell_size))
         self.head_skin.fill(SNAKE_HEAD_COLOR)
 
         self.pending_growth = 0
 
     def draw_snake(self, screen):
         for segment in self.snake:
-            pixel_position = (segment[0] * CELL_SIZE, segment[1] * CELL_SIZE)
+            pixel_position = (segment[0] * self.cell_size, segment[1] * self.cell_size)
             if segment == self.snake_head:
                 screen.blit(self.head_skin, pixel_position)
             else:

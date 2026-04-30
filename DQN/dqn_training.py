@@ -223,8 +223,8 @@ def train_dqn(
 if __name__ == "__main__":
     # Configuration
     config = {
-        'num_episodes': 300,
-        'render': True,
+        'num_episodes': 10000,
+        'render': False,
         'render_fps': 100000,
         'learning_rate': 0.001,
         'gamma': 0.99,

@@ -265,8 +265,8 @@ if __name__ == "__main__":
     }
     
     # Training configuration
-    num_episodes = 300
-    render = True
+    num_episodes = 10000
+    render = False
     render_fps = 100000
     learning_rate = 0.1
     gamma = 0.9
