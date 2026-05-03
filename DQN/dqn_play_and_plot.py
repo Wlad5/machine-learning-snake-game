@@ -24,11 +24,11 @@ from dqn_state_encoding_bodyawareness import DQNBodyAwarenessStateEncoding
 
 # Feature size mapping for each encoding
 ENCODING_FEATURE_SIZES = {
-    'basic': 12,
-    'distance': 13,
-    'raycasting': 20,
-    'localgrid': 24,
-    'bodyaware': 14,
+    'basic': 16,      # 4 direction + 2 norm food offsets + 4 binary food dir + 4 danger + 2 tail offset
+    'distance': 17,   # 4 direction + 4 food dir + 4 wall dist + food dist + 4 danger flags
+    'raycasting': 23, # 4 direction + 8 rays × 2 + 2 tail offset + 1 norm food dist
+    'localgrid': 29,  # 4 direction + 4 food dir + 16 grid + 2 norm food offset + 1 food dist + 2 tail offset
+    'bodyaware': 15,  # 4 direction + 4 food dir + 4 danger + length + 2 tail offset
 }
 
 # Encoding class mapping

@@ -30,7 +30,7 @@ GRID_SIZES = [
     (6, 6),
 ]
 
-EPISODES_PER_GRID = 2000
+EPISODES_PER_GRID = 15000
 CELL_SIZE = 33
 
 MODELS_DIR = CURRENT_DIR / "models"
@@ -163,15 +163,29 @@ def evaluate_single_grid(encoding_name: str, agent: DQNAgent, cols: int, rows: i
 def run_generalization_experiment(grid_sizes, episodes_per_grid: int):
     all_episode_results = []
 
+def _model_file(encoding_name: str, use_curriculum: bool) -> Path:
+    """Return the model path, preferring curriculum suffix when requested."""
+    if use_curriculum:
+        curriculum_path = MODELS_DIR / f"dqn_trained_model_{encoding_name}_curriculum.pkl"
+        if curriculum_path.exists():
+            return curriculum_path
+        # Fallback: maybe it was saved with --save-as-standard
+    return MODELS_DIR / f"dqn_trained_model_{encoding_name}.pkl"
+
+
+def run_generalization_experiment(grid_sizes, episodes_per_grid: int, use_curriculum: bool = False):
+    all_episode_results = []
+
     for encoding_name in ENCODINGS:
-        model_file = MODELS_DIR / f"dqn_trained_model_{encoding_name}.pkl"
+        model_file = _model_file(encoding_name, use_curriculum)
         agent = load_dqn_agent(model_file)
 
         if agent is None:
             print(f"[WARN] Missing model for {encoding_name}: {model_file}")
             continue
 
-        print(f"\n=== {encoding_name.upper()} ===")
+        suffix = " (curriculum)" if use_curriculum and "_curriculum" in model_file.name else ""
+        print(f"\n=== {encoding_name.upper()}{suffix} ===")
         for cols, rows in grid_sizes:
             print(f"Evaluating grid {cols}x{rows} ({episodes_per_grid} episodes)...")
             grid_df = evaluate_single_grid(encoding_name, agent, cols, rows, episodes_per_grid)
@@ -364,13 +378,28 @@ def print_compact_summary(summary: pd.DataFrame):
 
 
 def main():
+    import argparse
+    parser = argparse.ArgumentParser(description="DQN Generalization Experiment")
+    parser.add_argument(
+        "--curriculum",
+        action="store_true",
+        help="Load curriculum-trained models (_curriculum.pkl) instead of single-grid models.",
+    )
+    parser.add_argument(
+        "--episodes", type=int, default=EPISODES_PER_GRID,
+        help=f"Evaluation episodes per grid per encoding (default {EPISODES_PER_GRID}).",
+    )
+    args = parser.parse_args()
+
     print("\nRunning DQN generalization experiment...")
-    print(f"Grid sizes: {GRID_SIZES}")
-    print(f"Episodes per grid: {EPISODES_PER_GRID}")
+    print(f"Grid sizes      : {GRID_SIZES}")
+    print(f"Episodes/grid   : {args.episodes}")
+    print(f"Model source    : {'curriculum' if args.curriculum else 'single-grid'}")
 
     episode_results, summary = run_generalization_experiment(
         grid_sizes=GRID_SIZES,
-        episodes_per_grid=EPISODES_PER_GRID,
+        episodes_per_grid=args.episodes,
+        use_curriculum=args.curriculum,
     )
 
     episode_file, summary_file = save_csv_results(episode_results, summary)

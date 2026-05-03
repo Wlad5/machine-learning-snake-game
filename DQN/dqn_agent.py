@@ -9,16 +9,14 @@ import os
 
 
 class DQNNetwork(nn.Module):
-    def __init__(self, state_size=12, action_size=4, hidden_size=256):
+    def __init__(self, state_size=12, action_size=4, hidden_size=256, num_layers=2):
         super(DQNNetwork, self).__init__()
-        self.net = nn.Sequential(
-            nn.Linear(state_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, hidden_size),
-            nn.ReLU(),
-            nn.Linear(hidden_size, action_size)
-        )
-    
+        layers = [nn.Linear(state_size, hidden_size), nn.ReLU()]
+        for _ in range(num_layers - 1):
+            layers.extend([nn.Linear(hidden_size, hidden_size), nn.ReLU()])
+        layers.append(nn.Linear(hidden_size, action_size))
+        self.net = nn.Sequential(*layers)
+
     def forward(self, state):
         return self.net(state)
 
@@ -36,6 +34,7 @@ class DQNAgent:
         batch_size=32,
         memory_size=10000,
         hidden_size=256,
+        num_layers=2,
         update_frequency=100,
     ):
         self.state_size = state_size
@@ -47,14 +46,15 @@ class DQNAgent:
         self.epsilon_decay = epsilon_decay
         self.batch_size = batch_size
         self.update_frequency = update_frequency
+        self.num_layers = num_layers
         self.step_count = 0
 
         # Device
         self.device = torch.device("cuda" if torch.cuda.is_available() else "cpu")
 
         # Networks
-        self.q_network = DQNNetwork(state_size, action_size, hidden_size).to(self.device)
-        self.target_network = DQNNetwork(state_size, action_size, hidden_size).to(self.device)
+        self.q_network = DQNNetwork(state_size, action_size, hidden_size, num_layers).to(self.device)
+        self.target_network = DQNNetwork(state_size, action_size, hidden_size, num_layers).to(self.device)
         self.target_network.load_state_dict(self.q_network.state_dict())
         self.target_network.eval()
 
@@ -137,6 +137,7 @@ class DQNAgent:
             'state_size': self.state_size,
             'action_size': self.action_size,
             'hidden_size': saved_hidden_size,
+            'num_layers': self.num_layers,
             'learning_rate': self.learning_rate,
             'gamma': self.gamma,
             'epsilon_min': self.epsilon_min,
@@ -156,23 +157,28 @@ class DQNAgent:
         with open(filepath, 'rb') as f:
             save_data = pickle.load(f)
         
-        # Always infer hidden_size from the actual network weights (authoritative source)
+        # Always infer hidden_size and num_layers from the actual network weights
         hidden_size = None
+        num_layers = None
         if 'q_network_state_dict' in save_data:
             state_dict = save_data['q_network_state_dict']
-            # The first layer weight shape is [hidden_size, state_size]
-            # So shape[0] gives us the hidden_size
             if 'net.0.weight' in state_dict:
                 hidden_size = state_dict['net.0.weight'].shape[0]
                 print(f"Inferred hidden_size from checkpoint: {hidden_size}")
-        
-        # Fallback to saved data if inference failed
+            # Count hidden layers: every even-indexed key is a Linear layer weight;
+            # last one is the output layer, so num_layers = total_linears - 1.
+            linear_keys = [k for k in state_dict if k.endswith('.weight')]
+            if linear_keys:
+                num_layers = len(linear_keys) - 1
+                print(f"Inferred num_layers from checkpoint: {num_layers}")
+
+        # Fallbacks
         if hidden_size is None:
             hidden_size = save_data.get('hidden_size', 256)
-            if 'hidden_size' not in save_data:
-                print(f"Using default hidden_size: {hidden_size}")
-        
-        print(f"Loading model with hidden_size={hidden_size}")
+        if num_layers is None:
+            num_layers = save_data.get('num_layers', 2)
+
+        print(f"Loading model with hidden_size={hidden_size}, num_layers={num_layers}")
         
         # Create agent with loaded hyperparameters
         agent = DQNAgent(
@@ -186,6 +192,7 @@ class DQNAgent:
             batch_size=save_data['batch_size'],
             update_frequency=save_data['update_frequency'],
             hidden_size=hidden_size,
+            num_layers=num_layers,
         )
         
         # Load network weights

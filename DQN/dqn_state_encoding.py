@@ -9,13 +9,30 @@ class DQNStateEncoding:
         snake_direction = snake.get_direction()
         
         direction_value = snake_direction.value if hasattr(snake_direction, 'value') else snake_direction
-        
+
+        # Normalize food offset by board dimensions so the signal is grid-size invariant.
+        norm_food_dx = (food_x - head_x) / max(board.cols, 1)
+        norm_food_dy = (food_y - head_y) / max(board.rows, 1)
+
+        # Normalized tail offset — tells the agent where its tail is relative to
+        # its head.  On a short snake this is near (0,0); as the snake grows and
+        # fills the board the tail direction signals the "safe exit" corridor.
+        # This is the primary missing signal for avoiding self-trapping on grids
+        # larger than the training grid.
+        snake_body = list(snake.snake)
+        tail_x, tail_y = snake_body[-1] if len(snake_body) > 1 else (head_x, head_y)
+        max_dim = max(board.cols, board.rows)
+        norm_tail_dx = (tail_x - head_x) / max_dim
+        norm_tail_dy = (tail_y - head_y) / max_dim
+
         state = np.array([
             int(direction_value == Direction.UP.value),       # direction UP
             int(direction_value == Direction.DOWN.value),     # direction DOWN
             int(direction_value == Direction.LEFT.value),     # direction LEFT
             int(direction_value == Direction.RIGHT.value),    # direction RIGHT
-            int(food_y < head_y),  # food up
+            norm_food_dx,   # signed normalized horizontal offset to food
+            norm_food_dy,   # signed normalized vertical offset to food
+            int(food_y < head_y),  # food up (binary, kept for compatibility)
             int(food_y > head_y),  # food down
             int(food_x < head_x),  # food left
             int(food_x > head_x),  # food right
@@ -23,6 +40,8 @@ class DQNStateEncoding:
             int(self._is_danger(board, snake, head_x, head_y + 1)),  # danger down
             int(self._is_danger(board, snake, head_x - 1, head_y)),  # danger left
             int(self._is_danger(board, snake, head_x + 1, head_y)),  # danger right
+            norm_tail_dx,   # signed normalized horizontal offset to tail
+            norm_tail_dy,   # signed normalized vertical offset to tail
         ], dtype=np.float32)
         return state
     
