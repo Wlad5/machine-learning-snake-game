@@ -265,7 +265,7 @@ if __name__ == "__main__":
     }
     
     # Training configuration
-    num_episodes = 10000
+    num_episodes = 50000
     render = False
     render_fps = 100000
     learning_rate = 0.1
@@ -281,7 +281,7 @@ if __name__ == "__main__":
     distance_penalty = -0.5
     length_bonus_multiplier = 10
     milestone_rewards = {5: 100, 10: 200, 15: 300, 20: 500}
-    max_steps_per_episode = 3000
+    max_steps_per_episode = 10000
     
     # Train with each encoding
     training_results = {}

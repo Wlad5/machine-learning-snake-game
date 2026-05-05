@@ -34,6 +34,11 @@ class LinearQLearningEnvironment:
         distance_penalty=-0.5,
         length_bonus_multiplier=10,
         milestone_rewards=None,
+        stagnation_scale=10.0,
+        revisit_penalty=2.0,
+        distance_shaping_scale=0.3,
+        scale_death_by_score=True,
+        use_dynamic_step_budget=True,
         state_encoder=None,
     ):
         pg.init()
@@ -47,6 +52,11 @@ class LinearQLearningEnvironment:
         self.distance_penalty = distance_penalty
         self.length_bonus_multiplier = length_bonus_multiplier
         self.milestone_rewards = milestone_rewards or {5: 100, 10: 200, 15: 300, 20: 500}
+        self.stagnation_scale = stagnation_scale
+        self.revisit_penalty = revisit_penalty
+        self.distance_shaping_scale = distance_shaping_scale
+        self.scale_death_by_score = scale_death_by_score
+        self.use_dynamic_step_budget = use_dynamic_step_budget
 
         if grid_cols is None:
             grid_cols = SCREEN_WIDTH // CELL_SIZE
@@ -66,6 +76,8 @@ class LinearQLearningEnvironment:
         self.step_count = 0
         self.score = 0
         self.prev_distance_to_food = 0
+        self.steps_since_last_food = 0
+        self.visited_recently = {}
 
         self.screen = None
         self.clock = None
@@ -83,11 +95,9 @@ class LinearQLearningEnvironment:
         return abs(snake_head[0] - food_pos[0]) + abs(snake_head[1] - food_pos[1])
 
     def _get_distance_reward(self, old_distance, new_distance):
-        if new_distance < old_distance:
-            return self.distance_bonus
-        elif new_distance > old_distance:
-            return self.distance_penalty
-        return 0.0
+        max_possible_distance = self.board.cols + self.board.rows
+        normalized_improvement = (old_distance - new_distance) / max_possible_distance
+        return normalized_improvement * self.food_reward * self.distance_shaping_scale
 
     def reset(self):
         self.snake = Snake(
@@ -111,6 +121,8 @@ class LinearQLearningEnvironment:
         self.prev_distance_to_food = self._calculate_distance_to_food(
             self.snake.snake_head, self.food.position
         )
+        self.steps_since_last_food = 0
+        self.visited_recently = {}
 
         return self.get_state()
 
@@ -119,7 +131,7 @@ class LinearQLearningEnvironment:
             info = {"score": self.score, "steps": self.step_count}
             return self.get_state(), 0.0, True, info
 
-        reward = float(self.per_step_reward)
+        reward = 0.0
 
         action_to_direction = {
             0: Direction.UP,
@@ -141,9 +153,14 @@ class LinearQLearningEnvironment:
         hit_self = head in body_without_head
 
         if hit_wall or hit_self:
-            # Death penalty for hitting wall or self
-            reward += self.death_penalty
+            # Adaptive death penalty: scales up with score progress
+            if self.scale_death_by_score:
+                progress_multiplier = 1.0 + (self.score / 10.0) * 2.0
+                reward += self.death_penalty * progress_multiplier
+            else:
+                reward += self.death_penalty
             self.done = True
+
         elif head == self.food.position:
             # FOOD EATEN - Multiple rewards
             self.score += 1
@@ -160,6 +177,10 @@ class LinearQLearningEnvironment:
                 milestone_bonus = self.milestone_rewards[self.score]
                 reward += milestone_bonus
 
+            # Reset stagnation and loop tracking after eating
+            self.steps_since_last_food = 0
+            self.visited_recently = {}
+
             # Check if won
             self.snake.grow()
             total_cells = self.board.cols * self.board.rows
@@ -175,15 +196,36 @@ class LinearQLearningEnvironment:
             )
 
         else:
-            # Distance-based reward shaping (guides agent toward food)
+            # Policy 1: Growing stagnation penalty (discourages looping without food)
+            self.steps_since_last_food += 1
+            stagnation_factor = self.steps_since_last_food / (self.board.cols * self.board.rows * 2)
+            reward += self.per_step_reward * (1.0 + stagnation_factor * self.stagnation_scale)
+
+            # Policy 2: Normalized distance shaping (scales with grid size)
             current_distance = self._calculate_distance_to_food(head, self.food.position)
-            distance_reward = self._get_distance_reward(self.prev_distance_to_food, current_distance)
-            reward += distance_reward
+            reward += self._get_distance_reward(self.prev_distance_to_food, current_distance)
             self.prev_distance_to_food = current_distance
 
-        if self.step_count >= self.max_steps_per_episode:
-            self.done = True
+            # Policy 3: Revisit cell penalty (discourages tight loops)
+            cell = tuple(head)
+            last_visit = self.visited_recently.get(cell, -999)
+            revisit_gap = self.step_count - last_visit
+            loop_threshold = self.board.cols * self.board.rows
+            if revisit_gap < loop_threshold:
+                reward -= self.revisit_penalty * (1.0 - revisit_gap / loop_threshold)
+            self.visited_recently[cell] = self.step_count
 
+        # Dynamic step budget (tied to snake length × grid area)
+        if not self.done:
+            if self.use_dynamic_step_budget:
+                snake_length = len(self.snake.snake)
+                grid_area = self.board.cols * self.board.rows
+                dynamic_max = grid_area * max(snake_length, 3) * 2
+                if self.step_count >= min(dynamic_max, self.max_steps_per_episode):
+                    reward += self.death_penalty * 0.5
+                    self.done = True
+            elif self.step_count >= self.max_steps_per_episode:
+                self.done = True
         next_state = self.get_state()
         info = {"score": self.score, "steps": self.step_count}
 

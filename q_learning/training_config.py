@@ -24,9 +24,24 @@ class RewardConfig:
     distance_bonus: float = 1.0           # Reward for moving closer to food
     distance_penalty: float = -0.5        # Penalty for moving away from food
     
-    # Milestone bonuses (NEW)
+    # Milestone bonuses
     milestone_rewards: dict = None        # Set in __post_init__
-    
+
+    # Policy 1: Stagnation penalty — per_step_reward grows with steps since last food
+    stagnation_scale: float = 10.0
+
+    # Policy 2: Revisit cell penalty — penalises returning to recently visited cells
+    revisit_penalty: float = 2.0
+
+    # Policy 3: Normalized distance shaping — fraction of food_reward applied per step
+    distance_shaping_scale: float = 0.3
+
+    # Policy 4: Adaptive death penalty — scales proportionally with current score
+    scale_death_by_score: bool = True
+
+    # Policy 5: Dynamic step budget — ties max steps to snake length × grid area
+    use_dynamic_step_budget: bool = True
+
     def __post_init__(self):
         if self.milestone_rewards is None:
             self.milestone_rewards = {

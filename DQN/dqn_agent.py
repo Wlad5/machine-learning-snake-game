@@ -86,11 +86,11 @@ class DQNAgent:
         batch = random.sample(self.memory, self.batch_size)
         states, actions, rewards, next_states, dones = zip(*batch)
 
-        states = torch.FloatTensor(np.array(states)).to(self.device)
-        actions = torch.LongTensor(actions).to(self.device)
-        rewards = torch.FloatTensor(rewards).to(self.device)
-        next_states = torch.FloatTensor(np.array(next_states)).to(self.device)
-        dones = torch.FloatTensor(dones).to(self.device)
+        states = torch.from_numpy(np.array(states, dtype=np.float32)).to(self.device)
+        actions = torch.from_numpy(np.array(actions, dtype=np.int64)).to(self.device)
+        rewards = torch.from_numpy(np.array(rewards, dtype=np.float32)).to(self.device)
+        next_states = torch.from_numpy(np.array(next_states, dtype=np.float32)).to(self.device)
+        dones = torch.from_numpy(np.array(dones, dtype=np.float32)).to(self.device)
 
         # Current Q-values
         q_values = self.q_network(states).gather(1, actions.unsqueeze(1)).squeeze(1)

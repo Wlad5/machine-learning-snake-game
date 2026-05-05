@@ -87,6 +87,8 @@ def play_episode(env, agent):
         episode_done = done
         state = next_state
 
+        env.render()
+
     # Check if episode was a win (filled entire board)
     total_cells = env.board.cols * env.board.rows
     is_win = len(env.snake.snake) >= total_cells
@@ -112,7 +114,7 @@ def test_all_encodings(models, num_episodes=100, show_progress=True):
         }
 
         env = DQNSnakeEnv(
-            render_mode=False,
+            render_mode=True,
             max_steps_per_episode=1000,
             food_reward=10,
             death_penalty=-10,

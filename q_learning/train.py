@@ -38,6 +38,13 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
     reward_for_winning          = config.reward_config.reward_for_winning
     death_penalty               = config.reward_config.death_penalty
     per_step_reward             = config.reward_config.per_step_reward
+    length_bonus_multiplier     = config.reward_config.length_bonus_multiplier
+    milestone_rewards           = config.reward_config.milestone_rewards
+    stagnation_scale            = config.reward_config.stagnation_scale
+    revisit_penalty             = config.reward_config.revisit_penalty
+    distance_shaping_scale      = config.reward_config.distance_shaping_scale
+    scale_death_by_score        = config.reward_config.scale_death_by_score
+    use_dynamic_step_budget     = config.reward_config.use_dynamic_step_budget
     
     max_steps_per_episode       = config.environment_config.max_steps_per_episode
     
@@ -55,6 +62,13 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
         death_penalty           = death_penalty,
         per_step_reward         = per_step_reward,
         reward_for_winning      = reward_for_winning,
+        length_bonus_multiplier = length_bonus_multiplier,
+        milestone_rewards       = milestone_rewards,
+        stagnation_scale        = stagnation_scale,
+        revisit_penalty         = revisit_penalty,
+        distance_shaping_scale  = distance_shaping_scale,
+        scale_death_by_score    = scale_death_by_score,
+        use_dynamic_step_budget = use_dynamic_step_budget,
         state_encoder           = state_encoder,
     )
     
@@ -131,7 +145,7 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
 
 if __name__ == "__main__":
     config = TrainingConfig(
-        num_episodes=10000,
+        num_episodes=50000,
         agent_config = AgentConfig(
             learning_rate   = 0.1,
             gamma           = 0.9,
@@ -141,15 +155,20 @@ if __name__ == "__main__":
             action_size     = 4,
         ),
         reward_config = RewardConfig(
-            food_reward         = 100,
-            reward_for_winning  = 2000,
-            death_penalty       = -300,
-            per_step_reward     = -0.05,
+            food_reward             = 100,
+            reward_for_winning      = 2000,
+            death_penalty           = -100,
+            per_step_reward         = -0.1,
+            stagnation_scale        = 10.0,
+            revisit_penalty         = 2.0,
+            distance_shaping_scale  = 0.3,
+            scale_death_by_score    = True,
+            use_dynamic_step_budget = True,
         ),
         environment_config = EnvironmentConfig(
             render                  =False,
             fps                     =100000,
-            max_steps_per_episode   =3000,
+            max_steps_per_episode   =5000,
             )
     )
     

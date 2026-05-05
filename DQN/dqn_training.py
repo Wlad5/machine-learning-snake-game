@@ -1,5 +1,6 @@
 import sys
 import csv
+import random
 import numpy as np
 from pathlib import Path
 from collections import defaultdict
@@ -95,6 +96,7 @@ def train_dqn(
     update_frequency=100,
     encoding_name='basic',
     state_encoder=None,
+    domain_randomization_grids=None,
 ):
     # Determine feature size based on encoding
     feature_size = ENCODING_FEATURE_SIZES.get(encoding_name, 12)
@@ -140,6 +142,8 @@ def train_dqn(
         update_frequency=update_frequency,
     )
     
+    print(f"Training on: {agent.device} ({encoding_name} encoding)")
+
     stats = DQNTrainingStats()
     training_csv_dir = CURRENT_DIR / "training_csv"
     training_csv_dir.mkdir(parents=True, exist_ok=True)
@@ -147,7 +151,11 @@ def train_dqn(
     
     try:
         for episode in range(num_episodes):
-            state = env.reset()
+            if domain_randomization_grids is not None:
+                g = random.choice(domain_randomization_grids)
+                state = env.reset(grid_cols=g, grid_rows=g)
+            else:
+                state = env.reset()
             episode_reward = 0.0
             episode_done = False
             
@@ -160,12 +168,11 @@ def train_dqn(
                 
                 # Store experience in replay memory
                 agent.remember(state, action, reward, next_state, done)
-                
-                # Train on a batch from replay memory
-                agent.replay()
-                
-                # Update target network periodically
+
+                # Update target network and train every 4 steps
                 agent.step_count += 1
+                if agent.step_count % 4 == 0:
+                    agent.replay()
                 if agent.step_count % update_frequency == 0:
                     agent.update_target_network()
                 
@@ -191,13 +198,15 @@ def train_dqn(
                 win=episode_win,
                 epsilon=agent.epsilon,
             )
-            stats.save_to_csv(str(history_file))
-            
-            # Print progress
+            # Save CSV and print every 100 episodes
             if (episode + 1) % 100 == 0:
+                stats.save_to_csv(str(history_file))
                 avg_reward, avg_score, avg_steps, total_wins = stats.get_averages()
                 print(f"Episode {episode + 1}/{num_episodes} - Avg Reward: {avg_reward:.2f}, Avg Score: {avg_score:.2f}, Wins: {total_wins}, Epsilon: {agent.epsilon:.4f}")
         
+        # Final CSV save
+        stats.save_to_csv(str(history_file))
+
         # Print final statistics
         avg_reward, avg_score, avg_steps, total_wins = stats.get_averages()
         print(f"\n{'='*80}")
@@ -223,16 +232,16 @@ def train_dqn(
 if __name__ == "__main__":
     # Configuration
     config = {
-        'num_episodes': 10000,
+        'num_episodes': 50000,
         'render': False,
         'render_fps': 100000,
         'learning_rate': 0.001,
         'gamma': 0.99,
         'epsilon': 1.0,
         'epsilon_min': 0.01,
-        'epsilon_decay': 0.995,
-        'batch_size': 32,
-        'memory_size': 10000,
+        'epsilon_decay': 0.99985,  # reaches ~0.01 at ~30k episodes (good for 50k)
+        'batch_size': 512,
+        'memory_size': 100000,
         'hidden_size': 256,
         'food_reward': 100,
         'death_penalty': -300,
@@ -242,8 +251,9 @@ if __name__ == "__main__":
         'distance_penalty': -0.5,
         'length_bonus_multiplier': 10,
         'milestone_rewards': {5: 100, 10: 200, 15: 300, 20: 500},
-        'max_steps_per_episode': 1000,
+        'max_steps_per_episode': 1500,
         'update_frequency': 10000,
+        'domain_randomization_grids': [3, 4, 5],  # train on all three grid sizes
     }
     
     # Define all state encodings
