@@ -11,6 +11,8 @@ for path in (PROJECT_ROOT, GAME_DIR):
         sys.path.insert(0, str(path))
 
 from state_encoding import State_Encoding
+from state_encoding_localgrid import LocalGridStateEncoding
+from state_encoding_raycasting import RayCastingStateEncoding
 from game.board import Board
 from game.enums import *
 from game.snake import Snake
@@ -254,6 +256,12 @@ class Snake_Env:
         self.board.refresh_entities(self.snake.snake, self.food.position)
         self.renderer.draw_board()
         self.renderer.draw_game_status_panel(self.game_status, self.score, self.snake.get_direction())
+
+        if isinstance(self.state_encoder, LocalGridStateEncoding):
+            self.renderer.draw_local_grid_with_food(self.snake, self.board, self.food)
+        elif isinstance(self.state_encoder, RayCastingStateEncoding):
+            self.renderer.draw_rays(self.snake, self.board, self.food)
+
         self.snake.draw_snake(self.screen)
         self.food.draw_food(self.screen)
         pg.display.flip()

@@ -85,12 +85,13 @@ def load_all_weights():
 # PLAYING/TESTING THE AGENT
 # ==============================================================================
 
-def play_episode(env, agent):
+def play_episode(env, agent, fps=10):
     state = env.reset()
     episode_reward = 0.0
     episode_done = False
 
     while not episode_done:
+        env.render(fps=fps)
         action = agent.choose_action(state)
         next_state, reward, done, info = env.step(action)
 

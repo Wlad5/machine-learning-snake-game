@@ -10,6 +10,8 @@ for path in (PROJECT_ROOT, GAME_DIR):
         sys.path.insert(0, str(path))
 
 from dqn_state_encoding import DQNStateEncoding
+from dqn_state_encoding_localgrid import DQNLocalGridStateEncoding
+from dqn_state_encoding_raycasting import DQNRayCastingStateEncoding
 from game.board import Board
 from game.enums import Direction, GameStatus
 from game.snake import Snake
@@ -253,6 +255,12 @@ class DQNSnakeEnv:
         self.board.refresh_entities(self.snake.snake, self.food.position)
         self.renderer.draw_board()
         self.renderer.draw_game_status_panel(self.game_status, self.score, self.snake.get_direction())
+
+        if isinstance(self.state_encoder, DQNLocalGridStateEncoding):
+            self.renderer.draw_local_grid_with_food(self.snake, self.board, self.food)
+        elif isinstance(self.state_encoder, DQNRayCastingStateEncoding):
+            self.renderer.draw_rays(self.snake, self.board, self.food)
+
         self.snake.draw_snake(self.screen)
         self.food.draw_food(self.screen)
         pg.display.flip()
