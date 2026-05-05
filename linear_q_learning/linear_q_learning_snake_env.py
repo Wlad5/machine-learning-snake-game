@@ -99,7 +99,14 @@ class LinearQLearningEnvironment:
         normalized_improvement = (old_distance - new_distance) / max_possible_distance
         return normalized_improvement * self.food_reward * self.distance_shaping_scale
 
-    def reset(self):
+    def reset(self, grid_cols=None, grid_rows=None):
+        # Optionally rebuild the board for domain randomization
+        if grid_cols is not None and grid_rows is not None:
+            cell_size = self.board.get_cell_size()
+            board_width = int(grid_cols) * int(cell_size)
+            board_height = int(grid_rows) * int(cell_size)
+            self.board = Board(board_width, board_height, cell_size)
+
         self.snake = Snake(
             cols=self.board.cols,
             rows=self.board.rows,

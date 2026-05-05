@@ -1,6 +1,7 @@
 import sys
 import pickle
 import csv
+import random
 from pathlib import Path
 from collections import defaultdict
 
@@ -96,6 +97,7 @@ def train(
     max_steps_per_episode=1000,
     encoding_name='basic',
     state_encoder=None,
+    domain_randomization_grids=None,
 ):
     """
     Train a Linear Q-Learning agent with a specific state encoding.
@@ -164,22 +166,17 @@ def train(
     )
     
     stats = TrainingStats()
-    
-    print("=" * 80)
-    print(f"LINEAR Q-LEARNING TRAINING - {encoding_name.upper()} ENCODING")
-    print("=" * 80)
-    print(f"Episodes: {num_episodes}")
-    print(f"Render: {render} (FPS: {render_fps})")
-    print(f"Learning Rate: {learning_rate}")
-    print(f"Gamma: {gamma}")
-    print(f"Initial Epsilon: {epsilon}")
-    print(f"State Features: {feature_size}")
-    print("=" * 80)
+    training_csv_dir = CURRENT_DIR / "training_csv"
+    training_csv_dir.mkdir(parents=True, exist_ok=True)
+    stats_file = training_csv_dir / f"linear_q_training_stats_{encoding_name}.csv"
     
     try:
         for episode in range(num_episodes):
-            print(f"\nEpisode {episode + 1}/{num_episodes}")
-            state = env.reset()
+            if domain_randomization_grids is not None:
+                g = random.choice(domain_randomization_grids)
+                state = env.reset(grid_cols=g, grid_rows=g)
+            else:
+                state = env.reset()
             episode_reward = 0.0
             episode_done = False
             
@@ -212,38 +209,34 @@ def train(
             
             agent.decay_epsilon()
             
-            if (episode + 1) % 50 == 0 or episode == 0:
+            if (episode + 1) % 100 == 0:
+                stats.save_to_csv(str(stats_file))
                 avg_reward, avg_score, avg_steps, total_wins = stats.get_averages()
-                print(f"  Avg Reward: {avg_reward:.2f} | Avg Score: {avg_score:.2f} | "
-                      f"Avg Steps: {avg_steps:.1f} | Wins: {total_wins}")
+                print(f"Episode {episode + 1}/{num_episodes} - Avg Reward: {avg_reward:.2f}, Avg Score: {avg_score:.2f}, Wins: {total_wins}, Epsilon: {agent.epsilon:.4f}")
         
+        # Final CSV save
+        stats.save_to_csv(str(stats_file))
+
+        # Print final statistics
         avg_reward, avg_score, avg_steps, total_wins = stats.get_averages()
-        print("\n" + "=" * 80)
-        print("TRAINING COMPLETE")
-        print("=" * 80)
-        print(f"Total Episodes:  {num_episodes}")
-        print(f"Average Reward:  {avg_reward:.2f}")
-        print(f"Average Score:   {avg_score:.2f}")
-        print(f"Average Steps:   {avg_steps:.1f}")
-        print(f"Total Wins:      {total_wins}")
-        print(f"Final Epsilon:   {agent.epsilon:.4f}")
-        print("=" * 80)
+        print(f"\n{'='*80}")
+        print(f">>> {encoding_name.upper()} TRAINING COMPLETE <<<")
+        print(f"{'='*80}")
+        print(f"Total Episodes:        {num_episodes}")
+        print(f"Average Reward:        {avg_reward:.2f}")
+        print(f"Average Score:         {avg_score:.2f}")
+        print(f"Average Steps:         {avg_steps:.1f}")
+        print(f"Total Wins:            {total_wins}")
+        print(f"Final Epsilon:         {agent.epsilon:.4f}")
+        print(f"{'='*80}")
         
-        # Save weights and stats
+        # Save weights
         models_dir = CURRENT_DIR / "models"
         models_dir.mkdir(parents=True, exist_ok=True)
         weights_file = models_dir / f"linear_q_weights_{encoding_name}.pkl"
-        training_csv_dir = CURRENT_DIR / "training_csv"
-        training_csv_dir.mkdir(parents=True, exist_ok=True)
-        stats_file = training_csv_dir / f"linear_q_training_stats_{encoding_name}.csv"
         
         with open(weights_file, "wb") as f:
             pickle.dump(agent.weights, f)
-        
-        stats.save_to_csv(str(stats_file))
-        
-        print(f"Weights saved to: {weights_file}")
-        print(f"Stats saved to: {stats_file}")
     
     except KeyboardInterrupt:
         print("\n\nTraining interrupted by user")
@@ -265,14 +258,14 @@ if __name__ == "__main__":
     }
     
     # Training configuration
-    num_episodes = 50000
+    num_episodes = 5000
     render = False
     render_fps = 100000
     learning_rate = 0.1
     gamma = 0.9
     epsilon = 1.0
     epsilon_min = 0.01
-    epsilon_decay = 0.995
+    epsilon_decay = 0.99985
     food_reward = 100
     death_penalty = -300
     per_step_reward = -0.05
@@ -281,7 +274,8 @@ if __name__ == "__main__":
     distance_penalty = -0.5
     length_bonus_multiplier = 10
     milestone_rewards = {5: 100, 10: 200, 15: 300, 20: 500}
-    max_steps_per_episode = 10000
+    max_steps_per_episode = 1500
+    domain_randomization_grids = [3, 4, 5]
     
     # Train with each encoding
     training_results = {}
@@ -309,6 +303,7 @@ if __name__ == "__main__":
             max_steps_per_episode=max_steps_per_episode,
             encoding_name=encoding_name,
             state_encoder=encoding,
+            domain_randomization_grids=domain_randomization_grids,
         )
         avg_reward, avg_score, avg_steps, total_wins = stats.get_averages()
         training_results[encoding_name] = total_wins

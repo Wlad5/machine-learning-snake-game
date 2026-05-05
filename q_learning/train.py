@@ -1,4 +1,5 @@
 import sys
+import random
 from pathlib import Path
 from training_config import TrainingConfig, AgentConfig, RewardConfig, EnvironmentConfig
 from training_stats import TrainingStatistics, EpisodeResult
@@ -21,7 +22,7 @@ from state_encoding_localgrid import LocalGridStateEncoding
 from state_encoding_bodyawareness import BodyAwarenessStateEncoding
 
 
-def train(config: TrainingConfig, encoding_name: str, state_encoder):
+def train(config: TrainingConfig, encoding_name: str, state_encoder, domain_randomization_grids=None):
     num_episodes                = config.num_episodes
 
     render                      = config.environment_config.render
@@ -85,8 +86,11 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
     
     try:
         for episode in range(num_episodes):
-            print(f"\nEpisode {episode + 1}/{num_episodes} {encoding_name.upper()}")
-            state = env.reset()
+            if domain_randomization_grids is not None:
+                g = random.choice(domain_randomization_grids)
+                state = env.reset(grid_cols=g, grid_rows=g)
+            else:
+                state = env.reset()
             episode_reward = 0.0
             episode_done = False
             
@@ -118,20 +122,26 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
                 epsilon=agent.epsilon,
             )
             stats.add_episode(result, episode)
-            if (episode + 1) % 100 == 0 or (episode + 1) == num_episodes:
+            if (episode + 1) % 100 == 0:
                 stats.save_to_csv(str(history_file))
-                    
+                final_stats = stats.get_final_stats()
+                print(f"Episode {episode + 1}/{num_episodes} - Avg Reward: {final_stats['avg_reward']:.2f}, Avg Score: {final_stats['avg_score']:.2f}, Wins: {final_stats['total_wins']}, Epsilon: {agent.epsilon:.4f}")
+
+        # Final CSV save
+        stats.save_to_csv(str(history_file))
+
+        # Print final statistics
         final_stats = stats.get_final_stats()
-        print(f"  Total Episodes:   {final_stats['total_episodes']}")
-        print(f"  Average Reward:   {final_stats['avg_reward']:.2f}")
-        print(f"  Average Score:    {final_stats['avg_score']:.2f}")
-        print(f"  Average Steps:    {final_stats['avg_steps']:.1f}")
-        print(f"  Best Score:       {final_stats['best_score']}")
-        print(f"  Total Wins:       {final_stats['total_wins']}")
-        print(f"  Final Epsilon:    {agent.epsilon:.4f}")
-        print("=" * 80)
-        print(f">>> {encoding_name.upper()} TRAINING COMPLETE - {final_stats['total_wins']} WINS <<<")
-        print("=" * 80)
+        print(f"\n{'='*80}")
+        print(f">>> {encoding_name.upper()} TRAINING COMPLETE <<<")
+        print(f"{'='*80}")
+        print(f"Total Episodes:        {final_stats['total_episodes']}")
+        print(f"Average Reward:        {final_stats['avg_reward']:.2f}")
+        print(f"Average Score:         {final_stats['avg_score']:.2f}")
+        print(f"Average Steps:         {final_stats['avg_steps']:.1f}")
+        print(f"Total Wins:            {final_stats['total_wins']}")
+        print(f"Final Epsilon:         {agent.epsilon:.4f}")
+        print(f"{'='*80}")
         with open(q_table_file, "wb") as f:
             pickle.dump(dict(agent.q_table), f)
         
@@ -145,20 +155,20 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder):
 
 if __name__ == "__main__":
     config = TrainingConfig(
-        num_episodes=50000,
+        num_episodes=5000,
         agent_config = AgentConfig(
             learning_rate   = 0.1,
             gamma           = 0.9,
             epsilon         = 1.0,
             epsilon_min     = 0.01,
-            epsilon_decay   = 0.995,
+            epsilon_decay   = 0.99985,
             action_size     = 4,
         ),
         reward_config = RewardConfig(
             food_reward             = 100,
             reward_for_winning      = 2000,
-            death_penalty           = -100,
-            per_step_reward         = -0.1,
+            death_penalty           = -300,
+            per_step_reward         = -0.05,
             stagnation_scale        = 10.0,
             revisit_penalty         = 2.0,
             distance_shaping_scale  = 0.3,
@@ -168,9 +178,10 @@ if __name__ == "__main__":
         environment_config = EnvironmentConfig(
             render                  =False,
             fps                     =100000,
-            max_steps_per_episode   =5000,
+            max_steps_per_episode   =1500,
             )
     )
+    domain_randomization_grids = [3, 4, 5]
     
     # Define all state encodings
     encodings = {
@@ -187,7 +198,7 @@ if __name__ == "__main__":
         print(f"\n{'='*80}")
         print(f"Training with {encoding_name.upper()} encoding...")
         print(f"{'='*80}")
-        agent, stats = train(config, encoding_name, encoding)
+        agent, stats = train(config, encoding_name, encoding, domain_randomization_grids=domain_randomization_grids)
         final_stats = stats.get_final_stats()
         training_wins[encoding_name] = final_stats['total_wins']
     
