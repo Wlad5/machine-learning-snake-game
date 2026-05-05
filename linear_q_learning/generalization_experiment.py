@@ -47,11 +47,11 @@ ENCODINGS = {
 }
 
 ENCODING_FEATURE_SIZES = {
-    "basic": 12,
-    "distance": 13,
-    "raycasting": 20,
-    "localgrid": 24,
-    "bodyaware": 14,
+    "basic": 16,
+    "distance": 17,
+    "raycasting": 23,
+    "localgrid": 29,
+    "bodyaware": 15,
 }
 
 COLORS = {

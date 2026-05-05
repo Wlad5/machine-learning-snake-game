@@ -3,7 +3,7 @@ from game.enums import Direction
 
 class LocalGridStateEncoding:
     """State Representation 3: Local Grid Vision
-    3x3 grid around snake head with occupancy markers (16 features)"""
+    3x3 grid around snake head with occupancy markers (29 features)"""
     
     def encode(self, board, snake, food):
         head_x, head_y = snake.snake_head
@@ -11,8 +11,23 @@ class LocalGridStateEncoding:
         snake_direction = snake.get_direction()
         
         direction_value = snake_direction.value if hasattr(snake_direction, 'value') else snake_direction
-        
-        # 3x3 grid around head
+
+        # Signed normalized food offsets (scale-invariant)
+        norm_food_dx = (food_x - head_x) / max(board.cols, 1)
+        norm_food_dy = (food_y - head_y) / max(board.rows, 1)
+
+        # Normalized Manhattan food distance
+        max_distance = board.cols + board.rows
+        norm_food_dist = (abs(food_x - head_x) + abs(food_y - head_y)) / max_distance
+
+        # Normalized tail offset
+        snake_body = list(snake.snake)
+        tail_x, tail_y = snake_body[-1] if len(snake_body) > 1 else (head_x, head_y)
+        max_dim = max(board.cols, board.rows)
+        norm_tail_dx = (tail_x - head_x) / max_dim
+        norm_tail_dy = (tail_y - head_y) / max_dim
+
+        # 3x3 grid around head (8 cells, centre is head and skipped)
         grid_state = []
         for dy in [-1, 0, 1]:
             for dx in [-1, 0, 1]:
@@ -31,10 +46,16 @@ class LocalGridStateEncoding:
             int(direction_value == Direction.DOWN.value),
             int(direction_value == Direction.LEFT.value),
             int(direction_value == Direction.RIGHT.value),
-            int(food_x < head_x),  # food general directions
+            int(food_x < head_x),  # food general directions (binary)
             int(food_x > head_x),
             int(food_y < head_y),
             int(food_y > head_y),
-        ] + grid_state)
+        ] + grid_state + [
+            norm_food_dx,    # signed normalized horizontal offset
+            norm_food_dy,    # signed normalized vertical offset
+            norm_food_dist,  # scalar distance
+            norm_tail_dx,    # tail direction for self-trap avoidance
+            norm_tail_dy,
+        ])
         
         return state

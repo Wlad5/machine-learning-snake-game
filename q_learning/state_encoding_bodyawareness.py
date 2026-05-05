@@ -3,7 +3,7 @@ from game.enums import Direction
 
 class BodyAwarenessStateEncoding:
     """State Representation 4: Snake Length & Body Proximity
-    Includes snake body information and proximity warnings (14 features)"""
+    Includes snake body information and proximity warnings (15 features)"""
     
     def encode(self, board, snake, food):
         head_x, head_y = snake.snake_head
@@ -15,15 +15,14 @@ class BodyAwarenessStateEncoding:
         # Normalize snake length
         max_length = board.cols * board.rows
         normalized_length = len(snake.snake_positions) / max_length
-        
-        # Check if body is adjacent (1 move away)
-        body_nearby = 0
-        for dx, dy in [(-1, 0), (1, 0), (0, -1), (0, 1)]:
-            nx, ny = head_x + dx, head_y + dy
-            # Exclude head position
-            if (nx, ny) in snake.snake_positions and (nx, ny) != (head_x, head_y):
-                body_nearby += 1
-        
+
+        # Normalized tail offset
+        snake_body = list(snake.snake)
+        tail_x, tail_y = snake_body[-1] if len(snake_body) > 1 else (head_x, head_y)
+        max_dim = max(board.cols, board.rows)
+        norm_tail_dx = (tail_x - head_x) / max_dim
+        norm_tail_dy = (tail_y - head_y) / max_dim
+
         state = (
             int(direction_value == Direction.UP.value),
             int(direction_value == Direction.DOWN.value),
@@ -38,7 +37,8 @@ class BodyAwarenessStateEncoding:
             int(self._is_danger(board, snake, head_x - 1, head_y)),  # danger left
             int(self._is_danger(board, snake, head_x + 1, head_y)),  # danger right
             normalized_length,
-            body_nearby / 4.0,  # Normalized by max 4 adjacent cells
+            norm_tail_dx,
+            norm_tail_dy,
         )
         return state
     

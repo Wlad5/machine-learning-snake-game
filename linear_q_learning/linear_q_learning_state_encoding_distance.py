@@ -2,7 +2,7 @@ from game.enums import Direction
 
 
 class LinearQLearningDistanceEncoding:
-    """State Representation 1: Relative Distance Encoding (13 features)
+    """State Representation 1: Relative Distance Encoding (17 features)
     Encodes normalized distances to obstacles and food"""
     
     def encode(self, board, snake, food):
@@ -16,7 +16,7 @@ class LinearQLearningDistanceEncoding:
         max_distance = board.cols + board.rows
         food_distance = (abs(food_x - head_x) + abs(food_y - head_y)) / max_distance
         
-        # Distance to walls in 4 directions
+        # Distance to walls in 4 directions (wall-only)
         distance_up = (head_y) / board.rows
         distance_down = (board.rows - head_y - 1) / board.rows
         distance_left = (head_x) / board.cols
@@ -36,5 +36,16 @@ class LinearQLearningDistanceEncoding:
             distance_left,
             distance_right,
             food_distance,
+            int(self._is_danger(board, snake, head_x, head_y - 1)),  # danger up
+            int(self._is_danger(board, snake, head_x, head_y + 1)),  # danger down
+            int(self._is_danger(board, snake, head_x - 1, head_y)),  # danger left
+            int(self._is_danger(board, snake, head_x + 1, head_y)),  # danger right
         )
         return state
+
+    def _is_danger(self, board, snake, cell_x, cell_y):
+        next_cell = (cell_x, cell_y)
+        return (
+            (not board.in_bounds_cell(next_cell))
+            or (next_cell in snake.snake_positions)
+        )
