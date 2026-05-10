@@ -4,14 +4,13 @@ from game.enums import Direction
 
 class DQNLocalGridStateEncoding:
     """State Representation 3: Local Grid Vision
-    3x3 grid around snake head with occupancy markers (27 features)
+    5x5 grid around snake head with occupancy markers (61 features)
 
-    27 = 4 direction + 4 binary food dir + 16 local grid cells + 2 norm food offset + 1 norm food distance + tail offset (2).
+    61 = 4 direction + 4 binary food dir + 48 local grid cells + 2 norm food offset + 1 norm food distance + tail offset (2).
 
-    On the 3x3 training grid, binary food direction is sufficient because food is
-    at most 2 squares away.  On 5x5+ grids the agent must navigate across several
-    cells, so binary direction alone is ambiguous — a food 1 square away and 5 squares
-    away look identical.  Adding signed normalized food offsets and a scalar Manhattan
+    On 5x5+ grids the agent must navigate across several cells, so binary
+    direction alone is ambiguous — a food 1 square away and 5 squares away look
+    identical.  Adding signed normalized food offsets and a scalar Manhattan
     distance gives the agent the magnitude it is missing.  The tail offset further
     helps avoid self-trapping as the snake grows longer on the larger boards.
     """
@@ -38,10 +37,10 @@ class DQNLocalGridStateEncoding:
         norm_tail_dx = (tail_x - head_x) / max_dim
         norm_tail_dy = (tail_y - head_y) / max_dim
 
-        # 3x3 grid around head (8 cells, centre is head and skipped).
+        # 5x5 grid around head (24 cells, centre is head and skipped).
         grid_state = []
-        for dy in [-1, 0, 1]:
-            for dx in [-1, 0, 1]:
+        for dy in [-2, -1, 0, 1, 2]:
+            for dx in [-2, -1, 0, 1, 2]:
                 if dx == 0 and dy == 0:
                     continue  # Skip center (head position)
                 nx, ny = head_x + dx, head_y + dy

@@ -20,7 +20,7 @@ COLORS = {
     'raycasting': '#9467bd',
 }
 
-WINDOW_SIZE = 100  # For rolling averages
+WINDOW_SIZE = 5000  # For rolling averages
 
 CURRENT_DIR = Path(__file__).resolve().parent
 TRAINING_CSV_DIR = CURRENT_DIR / "training_csv"

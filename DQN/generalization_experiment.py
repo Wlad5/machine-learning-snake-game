@@ -25,12 +25,12 @@ from dqn_state_encoding_bodyawareness import DQNBodyAwarenessStateEncoding
 # Add or remove grid sizes here.
 GRID_SIZES = [
     (3, 3),
-    (4, 4),
     (5, 5),
-    (6, 6),
+    (8, 8),
+    (10, 10),
 ]
 
-EPISODES_PER_GRID = 10000
+EPISODES_PER_GRID = 1000
 CELL_SIZE = 33
 
 MODELS_DIR = CURRENT_DIR / "models"

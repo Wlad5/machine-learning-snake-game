@@ -27,7 +27,7 @@ ENCODING_FEATURE_SIZES = {
     'basic': 16,      # 4 direction + 2 norm food offsets + 4 binary food dir + 4 danger + 2 tail offset
     'distance': 17,   # 4 direction + 4 food dir + 4 wall dist + food dist + 4 danger flags
     'raycasting': 23, # 4 direction + 8 rays × 2 + 2 tail offset + 1 norm food dist
-    'localgrid': 29,  # 4 direction + 4 food dir + 16 grid + 2 norm food offset + 1 food dist + 2 tail offset
+    'localgrid': 61,  # 4 direction + 4 food dir + 48 grid (24 cells × 2) + 2 norm food offset + 1 food dist + 2 tail offset
     'bodyaware': 15,  # 4 direction + 4 food dir + 4 danger + length + 2 tail offset
 }
 
@@ -232,29 +232,29 @@ def train_dqn(
 if __name__ == "__main__":
     # Configuration
     config = {
-        'num_episodes': 50000,
-        'render': False,
-        'render_fps': 100000,
-        'learning_rate': 0.001,
-        'gamma': 0.99,
-        'epsilon': 1.0,
-        'epsilon_min': 0.01,
-        'epsilon_decay': 0.99985,  # reaches ~0.01 at ~30k episodes (good for 50k)
-        'batch_size': 512,
-        'memory_size': 100000,
-        'hidden_size': 256,
-        'food_reward': 100,
-        'death_penalty': -300,
-        'per_step_reward': -0.05,
-        'reward_for_winning': 2000,
-        'distance_bonus': 1.0,
-        'distance_penalty': -0.5,
-        'length_bonus_multiplier': 10,
-        'milestone_rewards': {5: 100, 10: 200, 15: 300, 20: 500},
-        'max_steps_per_episode': 1500,
-        'update_frequency': 10000,
-        'domain_randomization_grids': [3, 4, 5],  # train on all three grid sizes
-    }
+    'num_episodes': 150000,          # more episodes for harder task
+    'render': False,
+    'render_fps': 100000,
+    'learning_rate': 0.0005,         # lower LR for more stable learning on complex grids
+    'gamma': 0.995,                  # higher discount — long-horizon planning matters more on big grids
+    'epsilon': 1.0,
+    'epsilon_min': 0.05,             # higher floor — keep some exploration on unseen large grids
+    'epsilon_decay': 0.999955,       # reaches ~0.05 at ~65k episodes out of 150k
+    'batch_size': 512,
+    'memory_size': 200000,           # larger buffer for diverse experiences across grid sizes
+    'hidden_size': 512,              # larger network for more complex spatial representations
+    'food_reward': 100,
+    'death_penalty': -300,
+    'per_step_reward': -0.02,        # slightly higher step penalty to discourage circling on big grids
+    'reward_for_winning': 5000,
+    'distance_bonus': 2.0,           # stronger guidance on larger grids where food is farther away
+    'distance_penalty': -1.0,
+    'length_bonus_multiplier': 10,
+    'milestone_rewards': {5: 100, 10: 300, 20: 600, 30: 1000, 50: 2000},  # extended milestones for big grids
+    'max_steps_per_episode': 5000,   # 10x10=100 cells; needs much more headroom (was 1500 for 5x5=25 cells)
+    'update_frequency': 10000,
+    'domain_randomization_grids': [3, 4, 5, 6, 7, 8, 10],  # train on the target sizes, drop 3x3
+}
     
     # Define all state encodings
     encodings = {

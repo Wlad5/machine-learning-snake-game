@@ -27,7 +27,7 @@ ENCODING_FEATURE_SIZES = {
     'basic': 16,
     'distance': 17,
     'raycasting': 23,
-    'localgrid': 29,
+    'localgrid': 61,
     'bodyaware': 15,
 }
 
@@ -258,7 +258,7 @@ if __name__ == "__main__":
     }
     
     # Training configuration
-    num_episodes = 5000
+    num_episodes = 50000
     render = False
     render_fps = 100000
     learning_rate = 0.1
@@ -275,7 +275,7 @@ if __name__ == "__main__":
     length_bonus_multiplier = 10
     milestone_rewards = {5: 100, 10: 200, 15: 300, 20: 500}
     max_steps_per_episode = 1500
-    domain_randomization_grids = [3, 4, 5]
+    domain_randomization_grids = [3, 4, 5, 6]
     
     # Train with each encoding
     training_results = {}

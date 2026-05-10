@@ -29,7 +29,7 @@ ENCODING_FEATURE_SIZES = {
     'basic': 16,
     'distance': 17,
     'raycasting': 23,
-    'localgrid': 29,
+    'localgrid': 61,
     'bodyaware': 15,
 }
 

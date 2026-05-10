@@ -155,7 +155,7 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder, domain_rand
 
 if __name__ == "__main__":
     config = TrainingConfig(
-        num_episodes=5000,
+        num_episodes=50000,
         agent_config = AgentConfig(
             learning_rate   = 0.1,
             gamma           = 0.9,
@@ -181,7 +181,7 @@ if __name__ == "__main__":
             max_steps_per_episode   =1500,
             )
     )
-    domain_randomization_grids = [3, 4, 5]
+    domain_randomization_grids = [3, 4, 5, 6, 7]
     
     # Define all state encodings
     encodings = {
