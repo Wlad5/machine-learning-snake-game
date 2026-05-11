@@ -27,7 +27,7 @@ ENCODING_FEATURE_SIZES = {
     'basic': 16,      # 4 direction + 2 norm food offsets + 4 binary food dir + 4 danger + 2 tail offset
     'distance': 17,   # 4 direction + 4 food dir + 4 wall dist + food dist + 4 danger flags
     'raycasting': 23, # 4 direction + 8 rays × 2 + 2 tail offset + 1 norm food dist
-    'localgrid': 29,  # 4 direction + 4 food dir + 16 grid + 2 norm food offset + 1 food dist + 2 tail offset
+    'localgrid': 43,  # 4 direction + 4 food dir + 30 grid (15 cells × 2) + 2 norm food offset + 1 food dist + 2 tail offset
     'bodyaware': 15,  # 4 direction + 4 food dir + 4 danger + length + 2 tail offset
 }
 

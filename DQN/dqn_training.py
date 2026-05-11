@@ -27,7 +27,7 @@ ENCODING_FEATURE_SIZES = {
     'basic': 16,      # 4 direction + 2 norm food offsets + 4 binary food dir + 4 danger + 2 tail offset
     'distance': 17,   # 4 direction + 4 food dir + 4 wall dist + food dist + 4 danger flags
     'raycasting': 23, # 4 direction + 8 rays × 2 + 2 tail offset + 1 norm food dist
-    'localgrid': 61,  # 4 direction + 4 food dir + 48 grid (24 cells × 2) + 2 norm food offset + 1 food dist + 2 tail offset
+    'localgrid': 43,  # 4 direction + 4 food dir + 30 grid (15 cells × 2) + 2 norm food offset + 1 food dist + 2 tail offset
     'bodyaware': 15,  # 4 direction + 4 food dir + 4 danger + length + 2 tail offset
 }
 
@@ -232,7 +232,7 @@ def train_dqn(
 if __name__ == "__main__":
     # Configuration
     config = {
-    'num_episodes': 150000,          # more episodes for harder task
+    'num_episodes': 100000,          # more episodes for harder task
     'render': False,
     'render_fps': 100000,
     'learning_rate': 0.0005,         # lower LR for more stable learning on complex grids

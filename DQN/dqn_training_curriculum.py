@@ -45,7 +45,7 @@ ENCODING_FEATURE_SIZES = {
     "basic": 16,      # 4 direction + 2 norm food offsets + 4 binary food dir + 4 danger + 2 tail offset
     "distance": 17,   # 4 direction + 4 food dir + 4 wall dist + food dist + 4 danger flags
     "raycasting": 23, # 4 direction + 8 rays × 2 + 2 tail offset + 1 norm food dist
-    "localgrid": 29,  # 4 direction + 4 food dir + 16 grid + 2 norm food offset + 1 food dist + 2 tail offset
+    "localgrid": 43,  # 4 direction + 4 food dir + 30 grid (15 cells × 2) + 2 norm food offset + 1 food dist + 2 tail offset
     "bodyaware": 15,  # 4 direction + 4 food dir + 4 danger + length + 2 tail offset
 }
 
@@ -58,7 +58,7 @@ ENCODING_MAP = {
 }
 
 # Default curriculum: ordered from easiest to hardest.
-DEFAULT_CURRICULUM_GRIDS = [(3, 3), (4, 4), (5, 5), (6, 6)]
+DEFAULT_CURRICULUM_GRIDS = [(3, 3), (4, 4), (5, 5), (6, 6), (7, 7), (8, 8)]
 
 CELL_SIZE = 33  # pixel size — irrelevant for headless training
 
@@ -69,28 +69,28 @@ def _max_steps_for_grid(cols: int, rows: int) -> int:
 
 
 def train_dqn_curriculum(
-    num_episodes: int = 40000,
+    num_episodes: int = 100_000,
     curriculum_grids=None,
     progressive: bool = True,
-    progressive_unlock_frac: float = 0.35,
+    progressive_unlock_frac: float = 0.40,
     encoding_name: str = "raycasting",
     learning_rate: float = 0.0005,
     gamma: float = 0.99,
     epsilon: float = 1.0,
     epsilon_min: float = 0.01,
-    epsilon_decay: float = 0.9999,   # slow decay — still exploring at ep 23k
+    epsilon_decay: float = 0.99993,
     batch_size: int = 64,
-    memory_size: int = 150_000,
-    hidden_size: int = 512,
+    memory_size: int = 100_000,
+    hidden_size: int = 256,
     num_layers: int = 3,
-    food_reward: float = 100.0,
-    death_penalty: float = -100.0,
-    per_step_reward: float = -0.02,
-    base_reward_for_winning: float = 1000.0,
-    scale_win_reward_with_grid: bool = True,
-    update_frequency: int = 200,
+    food_reward: float = 50.0,
+    death_penalty: float = -50.0,
+    per_step_reward: float = -0.01,
+    base_reward_for_winning: float = 10_000.0,
+    scale_win_reward_with_grid: bool = False,
+    update_frequency: int = 500,
     save_path: str = None,
-    save_as_standard: bool = False,
+    save_as_standard: bool = True,
     print_every: int = 500,
 ):
     """
@@ -292,7 +292,7 @@ if __name__ == "__main__":
         help="Train a single encoding. Omit to train all.",
     )
     parser.add_argument(
-        "--episodes", type=int, default=40000, help="Total training episodes."
+        "--episodes", type=int, default=100_000, help="Total training episodes."
     )
     parser.add_argument(
         "--grids",
@@ -309,15 +309,15 @@ if __name__ == "__main__":
     parser.add_argument(
         "--unlock-frac",
         type=float,
-        default=0.35,
-        help="Fraction of training by which all grids reach equal weight (default 0.35).",
+        default=0.40,
+        help="Fraction of training by which all grids reach equal weight (default 0.40).",
     )
-    parser.add_argument("--hidden-size", type=int, default=512)
+    parser.add_argument("--hidden-size", type=int, default=256)
     parser.add_argument("--num-layers", type=int, default=3)
     parser.add_argument("--batch-size", type=int, default=64)
-    parser.add_argument("--memory-size", type=int, default=150_000)
+    parser.add_argument("--memory-size", type=int, default=100_000)
     parser.add_argument("--lr", type=float, default=0.0005)
-    parser.add_argument("--epsilon-decay", type=float, default=0.9999)
+    parser.add_argument("--epsilon-decay", type=float, default=0.99993)
     parser.add_argument(
         "--save-as-standard",
         action="store_true",
@@ -354,5 +354,5 @@ if __name__ == "__main__":
             memory_size=args.memory_size,
             hidden_size=args.hidden_size,
             num_layers=args.num_layers,
-            save_as_standard=args.save_as_standard,
+            save_as_standard=True,
         )

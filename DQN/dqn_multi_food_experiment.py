@@ -45,12 +45,13 @@ from game.snake import Snake
 #  EXPERIMENT CONFIGURATION  ← edit these values
 # ==============================================================================
 
-GRID_COLS = 4      # Board columns
-GRID_ROWS = 4      # Board rows
+GRID_COLS = 6      # Board columns
+GRID_ROWS = 6      # Board rows
 CELL_SIZE = 33      # Pixels per cell (irrelevant for headless runs)
 
 # Number of simultaneous food items to test (each value is a separate condition)
-FOOD_COUNTS = [1, 2, 3, 5, 8, 14]
+# On 6x6=36 cells: 8 food items leaves ample free space; 14 is degenerate
+FOOD_COUNTS = [1, 2, 3, 5, 8]
 
 # Spatial patterns to test.  Remove any you don't want.
 #   "uniform"       – completely random placement
@@ -60,7 +61,7 @@ FOOD_COUNTS = [1, 2, 3, 5, 8, 14]
 FOOD_PATTERNS = ["uniform", "center_biased", "edge_biased", "corners"]
 
 # Evaluation episodes per (encoding × food_count × pattern) combination
-EPISODES_PER_CONFIG = 100
+EPISODES_PER_CONFIG = 200
 
 # ── Watch mode ─────────────────────────────────────────────────────────────────
 WATCH_MODE       = False

@@ -20,7 +20,7 @@ COLORS = {
     'raycasting': '#9467bd',
 }
 
-WINDOW_SIZE = 5000  # For rolling averages
+WINDOW_SIZE = 1000  # For rolling averages
 
 CURRENT_DIR = Path(__file__).resolve().parent
 TRAINING_CSV_DIR = CURRENT_DIR / "training_csv"
@@ -138,7 +138,7 @@ def plot_final_performance(data):
 def plot_training_efficiency(data):
     fig, ax = plt.subplots(figsize=(12, 6))
     
-    milestones = [1, 2, 3, 4, 5, 8, 10]
+    milestones = [1, 2, 3, 4, 5, 8, 10, 15, 20]
     
     for encoding, df in data.items():
         episodes_to_milestone = []

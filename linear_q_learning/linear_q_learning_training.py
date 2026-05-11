@@ -27,7 +27,7 @@ ENCODING_FEATURE_SIZES = {
     'basic': 16,
     'distance': 17,
     'raycasting': 23,
-    'localgrid': 61,
+    'localgrid': 43,
     'bodyaware': 15,
 }
 
@@ -258,24 +258,24 @@ if __name__ == "__main__":
     }
     
     # Training configuration
-    num_episodes = 50000
+    num_episodes = 100_000
     render = False
     render_fps = 100000
-    learning_rate = 0.1
-    gamma = 0.9
+    learning_rate = 0.01
+    gamma = 0.95
     epsilon = 1.0
     epsilon_min = 0.01
-    epsilon_decay = 0.99985
-    food_reward = 100
-    death_penalty = -300
-    per_step_reward = -0.05
-    reward_for_winning = 2000
+    epsilon_decay = 0.99993
+    food_reward = 50
+    death_penalty = -50
+    per_step_reward = -0.01
+    reward_for_winning = 10_000
     distance_bonus = 1.0
     distance_penalty = -0.5
     length_bonus_multiplier = 10
     milestone_rewards = {5: 100, 10: 200, 15: 300, 20: 500}
-    max_steps_per_episode = 1500
-    domain_randomization_grids = [3, 4, 5, 6]
+    max_steps_per_episode = 2000
+    domain_randomization_grids = [3, 4, 5, 6, 7]
     
     # Train with each encoding
     training_results = {}

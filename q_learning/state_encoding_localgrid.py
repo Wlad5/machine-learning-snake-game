@@ -3,7 +3,7 @@ from game.enums import Direction
 
 class LocalGridStateEncoding:
     """State Representation 3: Local Grid Vision
-    5x5 grid around snake head with occupancy markers (61 features)"""
+    4x4 grid around snake head with occupancy markers (43 features)"""
     
     def encode(self, board, snake, food):
         head_x, head_y = snake.snake_head
@@ -27,10 +27,10 @@ class LocalGridStateEncoding:
         norm_tail_dx = (tail_x - head_x) / max_dim
         norm_tail_dy = (tail_y - head_y) / max_dim
 
-        # 5x5 grid around head (24 cells, centre is head and skipped)
+        # 4x4 grid around head (15 cells, centre is head and skipped)
         grid_state = []
-        for dy in [-2, -1, 0, 1, 2]:
-            for dx in [-2, -1, 0, 1, 2]:
+        for dy in [-2, -1, 0, 1]:
+            for dx in [-2, -1, 0, 1]:
                 if dx == 0 and dy == 0:
                     continue  # Skip center (head position)
                 nx, ny = head_x + dx, head_y + dy

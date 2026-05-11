@@ -155,20 +155,20 @@ def train(config: TrainingConfig, encoding_name: str, state_encoder, domain_rand
 
 if __name__ == "__main__":
     config = TrainingConfig(
-        num_episodes=50000,
+        num_episodes=100_000,
         agent_config = AgentConfig(
-            learning_rate   = 0.1,
-            gamma           = 0.9,
+            learning_rate   = 0.15,
+            gamma           = 0.95,
             epsilon         = 1.0,
-            epsilon_min     = 0.01,
-            epsilon_decay   = 0.99985,
+            epsilon_min     = 0.05,
+            epsilon_decay   = 0.99993,
             action_size     = 4,
         ),
         reward_config = RewardConfig(
-            food_reward             = 100,
-            reward_for_winning      = 2000,
-            death_penalty           = -300,
-            per_step_reward         = -0.05,
+            food_reward             = 50,
+            reward_for_winning      = 10_000,
+            death_penalty           = -50,
+            per_step_reward         = -0.01,
             stagnation_scale        = 10.0,
             revisit_penalty         = 2.0,
             distance_shaping_scale  = 0.3,
@@ -178,10 +178,10 @@ if __name__ == "__main__":
         environment_config = EnvironmentConfig(
             render                  =False,
             fps                     =100000,
-            max_steps_per_episode   =1500,
+            max_steps_per_episode   =2000,
             )
     )
-    domain_randomization_grids = [3, 4, 5, 6, 7]
+    domain_randomization_grids = [3, 4, 5, 6]
     
     # Define all state encodings
     encodings = {

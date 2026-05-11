@@ -23,6 +23,8 @@ from dqn_state_encoding_bodyawareness import DQNBodyAwarenessStateEncoding
 
 
 # Add or remove grid sizes here.
+# (3,3)–(8,8): seen during curriculum training
+# (10,10)+(12,12): unseen — measures out-of-distribution transfer
 GRID_SIZES = [
     (3, 3),
     (5, 5),
@@ -30,7 +32,7 @@ GRID_SIZES = [
     (10, 10),
 ]
 
-EPISODES_PER_GRID = 1000
+EPISODES_PER_GRID = 500
 CELL_SIZE = 33
 
 MODELS_DIR = CURRENT_DIR / "models"

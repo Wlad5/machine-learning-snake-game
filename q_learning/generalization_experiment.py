@@ -26,14 +26,19 @@ from state_encoding_bodyawareness import BodyAwarenessStateEncoding
 
 
 # Add or remove grid sizes here.
+# (3,3)–(6,6): seen during training (domain randomization [3,4,5,6])
+# (7,7)+(8,8)+(10,10): unseen — measures out-of-distribution transfer
 GRID_SIZES = [
     (3, 3),
     (4, 4),
     (5, 5),
     (6, 6),
+    (7, 7),
+    (8, 8),
+    (10, 10),
 ]
 
-EPISODES_PER_GRID = 5000
+EPISODES_PER_GRID = 500
 CELL_SIZE = 33
 
 MODELS_DIR = CURRENT_DIR / "models"

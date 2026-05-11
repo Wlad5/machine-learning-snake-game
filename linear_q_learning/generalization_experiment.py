@@ -24,14 +24,19 @@ from linear_q_learning_state_encoding_bodyawareness import LinearQLearningBodyAw
 
 
 # Add or remove grid sizes here.
+# (3,3)–(7,7): seen during training (domain randomization [3,4,5,6,7])
+# (8,8)+(10,10): unseen — measures out-of-distribution transfer
 GRID_SIZES = [
     (3, 3),
     (4, 4),
     (5, 5),
     (6, 6),
+    (7, 7),
+    (8, 8),
+    (10, 10),
 ]
 
-EPISODES_PER_GRID = 2000
+EPISODES_PER_GRID = 500
 CELL_SIZE = 33
 
 MODELS_DIR = CURRENT_DIR / "models"
@@ -50,7 +55,7 @@ ENCODING_FEATURE_SIZES = {
     "basic": 16,
     "distance": 17,
     "raycasting": 23,
-    "localgrid": 61,
+    "localgrid": 43,
     "bodyaware": 15,
 }
 
